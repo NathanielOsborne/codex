@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Nathaniel Osborne | Build Fast, Ship Better</title>
+  <title>Nathaniel Osborne | Mood Lab</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
@@ -17,35 +17,21 @@
   <header class="topbar reveal">
     <a class="brand" href="#">Nathaniel Osborne</a>
     <nav class="topnav">
-      <a href="#services">Services</a>
-      <a href="#repos">Work</a>
+      <a href="#mood">Mood Lab</a>
+      <a href="#repos">Projects</a>
       <a href="#contact">Contact</a>
     </nav>
-    <a class="btn primary" href="https://github.com/NathanielOsborne" target="_blank" rel="noreferrer">Hire / Collab</a>
+    <a class="btn primary" href="https://github.com/NathanielOsborne" target="_blank" rel="noreferrer">Connect</a>
   </header>
 
   <main>
     <section class="hero reveal">
-      <p class="eyebrow">Modern Product Engineering</p>
-      <h1>Web experiences that feel sharp, convert fast, and keep users coming back.</h1>
-      <p class="lead">I build clean, high-performing digital products with a strong brand voice and practical engineering under the hood.</p>
+      <p class="eyebrow">Mood-Powered Portfolio</p>
+      <h1>Pick your vibe. The whole experience bends around your mood.</h1>
+      <p class="lead">This page is intentionally playful: dynamic themes, daily rituals, and mood-driven interactions layered on top of live project content.</p>
       <div class="cta-row">
         <a class="btn primary" id="githubProfile" href="https://github.com/NathanielOsborne" target="_blank" rel="noreferrer">See My GitHub</a>
-        <a class="btn ghost" href="#repos">Explore Projects</a>
-      </div>
-      <div class="hero-metrics">
-        <article>
-          <h3>Fast</h3>
-          <p>Performance-first frontends designed for retention.</p>
-        </article>
-        <article>
-          <h3>Clear</h3>
-          <p>Messaging and layout tuned for attention and trust.</p>
-        </article>
-        <article>
-          <h3>Reliable</h3>
-          <p>Real engineering workflows, not template fluff.</p>
-        </article>
+        <a class="btn ghost" href="#mood">Open Mood Lab</a>
       </div>
     </section>
 
@@ -53,8 +39,9 @@
       <span id="moodEmoji" class="mood-emoji" aria-hidden="true">🙂</span>
       <div class="section-head">
         <h2>Daily Mood Vibe</h2>
-        <p>Set the energy. Keep it all day.</p>
+        <p>Set once, enjoy all day.</p>
       </div>
+
       <div class="mood-options" role="group" aria-label="Choose your mood for today">
         <button class="mood-btn" data-mood="focused" type="button">Focused</button>
         <button class="mood-btn" data-mood="chill" type="button">Chill</button>
@@ -62,24 +49,57 @@
         <button class="mood-btn" data-mood="calm" type="button">Calm</button>
       </div>
       <p id="moodStatus" class="status">No mood set for today yet.</p>
-    </section>
 
-    <section class="proof reveal" id="services">
-      <div class="section-head">
-        <h2>Why People Work With Me</h2>
-      </div>
-      <div class="proof-grid">
-        <article class="proof-card">
-          <h3>Brand + Build</h3>
-          <p>Not just code. I shape messaging, layout, and interactions so the product feels valuable in seconds.</p>
+      <div class="mood-lab-grid">
+        <article class="mood-card stat-card">
+          <h3>Current Streak</h3>
+          <p id="streakValue" class="big-number">0 days</p>
+          <small>Consecutive daily check-ins</small>
         </article>
-        <article class="proof-card">
-          <h3>Momentum</h3>
-          <p>I move quickly, communicate clearly, and ship improvements continuously instead of waiting for perfect.</p>
+
+        <article class="mood-card stat-card">
+          <h3>Total Check-ins</h3>
+          <p id="checkinValue" class="big-number">0</p>
+          <small>Days you logged a mood</small>
         </article>
-        <article class="proof-card">
-          <h3>Business Impact</h3>
-          <p>Every change is meant to improve user confidence, conversion, and long-term product quality.</p>
+
+        <article class="mood-card stat-card">
+          <h3>Most Used Mood</h3>
+          <p id="favoriteMood" class="big-number">-</p>
+          <small>Your vibe trend</small>
+        </article>
+
+        <article class="mood-card quote-card">
+          <h3>Daily Mood Message</h3>
+          <p id="moodQuote">Pick a mood to unlock your message.</p>
+          <p id="moodChallenge" class="challenge"></p>
+        </article>
+
+        <article class="mood-card">
+          <h3>Vibe Controls</h3>
+          <div class="mini-actions">
+            <button id="randomMoodBtn" class="btn ghost" type="button">Surprise My Mood</button>
+            <button id="celebrateBtn" class="btn ghost" type="button">Celebrate</button>
+            <button id="breatheBtn" class="btn ghost" type="button">Breathe 30s</button>
+          </div>
+          <p id="breatheStatus" class="status tiny">Take a micro-break anytime.</p>
+        </article>
+
+        <article class="mood-card">
+          <h3>Soundtrack</h3>
+          <p>Open a matching vibe playlist.</p>
+          <a id="moodPlaylist" class="btn primary" href="https://open.spotify.com" target="_blank" rel="noreferrer">Open Playlist</a>
+        </article>
+
+        <article class="mood-card journal-card">
+          <h3>One-Line Mood Journal</h3>
+          <textarea id="journalNote" rows="3" placeholder="Write one sentence about today..."></textarea>
+          <p id="journalStatus" class="status tiny">Saved automatically for today.</p>
+        </article>
+
+        <article class="mood-card history-card">
+          <h3>Last 7 Days</h3>
+          <ul id="moodHistory" class="history-list"></ul>
         </article>
       </div>
     </section>
@@ -101,11 +121,11 @@
 
     <section class="contact reveal" id="contact">
       <div class="section-head">
-        <h2>Let’s Build Something Worth Noticing</h2>
+        <h2>Want this kind of interactive experience for your site?</h2>
       </div>
-      <p>If you want a site that feels premium and performs like a product, we should work together.</p>
+      <p>Let’s design something memorable and high-converting together.</p>
       <div class="cta-row">
-        <a class="btn primary" href="https://github.com/NathanielOsborne?tab=repositories" target="_blank" rel="noreferrer">Open Repositories</a>
+        <a class="btn primary" href="https://github.com/NathanielOsborne?tab=repositories" target="_blank" rel="noreferrer">Explore My Work</a>
         <a class="btn ghost" href="https://github.com/NathanielOsborne" target="_blank" rel="noreferrer">Message on GitHub</a>
       </div>
     </section>
