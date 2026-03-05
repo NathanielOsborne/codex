@@ -62,6 +62,41 @@ body[data-mood="calm"] {
   --particle-color: rgba(43, 154, 98, 0.22);
 }
 
+
+body[data-theme="dark"] {
+  --bg-1: #10131c;
+  --bg-2: #171d2a;
+  --text: #edf2ff;
+  --muted: #a8b4cc;
+  --panel: rgba(22, 29, 44, 0.82);
+  --border: rgba(222, 235, 255, 0.16);
+  --shadow: 0 14px 40px rgba(0, 0, 0, 0.45);
+  --particle-color: rgba(255, 255, 255, 0.14);
+}
+
+body[data-theme="dark"][data-mood="focused"] {
+  --bg-1: #121932;
+  --bg-2: #1a2540;
+  --particle-color: rgba(94, 134, 255, 0.26);
+}
+
+body[data-theme="dark"][data-mood="chill"] {
+  --bg-1: #0f1f28;
+  --bg-2: #16303a;
+  --particle-color: rgba(63, 213, 237, 0.26);
+}
+
+body[data-theme="dark"][data-mood="energetic"] {
+  --bg-1: #2a1614;
+  --bg-2: #3a1c15;
+  --particle-color: rgba(255, 124, 81, 0.28);
+}
+
+body[data-theme="dark"][data-mood="calm"] {
+  --bg-1: #13261d;
+  --bg-2: #1a3226;
+  --particle-color: rgba(109, 206, 152, 0.27);
+}
 .bg-grid {
   position: fixed;
   inset: 0;
@@ -171,6 +206,12 @@ footer {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
+}
+
+.topbar-actions {
+  display: inline-flex;
+  gap: 0.55rem;
+  align-items: center;
 }
 
 .brand {
