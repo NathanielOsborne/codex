@@ -50,6 +50,7 @@
             <button id="vibeChallengeBtn" class="btn ghost" type="button">New Challenge</button>
             <button id="vibeBurstBtn" class="btn ghost" type="button">Vibe Burst</button>
             <button id="vibeSoundBtn" class="btn ghost" type="button">Play Mood Sound</button>
+            <button id="vibeShuffleMoodBtn" class="btn ghost" type="button">Shuffle Mood</button>
           </div>
           <p id="vibeActionStatus" class="status tiny">Ready.</p>
         </article>
@@ -58,6 +59,22 @@
           <h3>Energy Slider</h3>
           <input id="vibeEnergy" type="range" min="1" max="10" value="6" />
           <p id="vibeEnergyStatus" class="status tiny">Energy: 6</p>
+        </article>
+
+        <article class="mood-card">
+          <h3>Mood Oracle</h3>
+          <p id="vibeOracleText" class="oracle-text">Draw a card for your next move.</p>
+          <button id="vibeOracleBtn" class="btn ghost" type="button">Draw Oracle Card</button>
+        </article>
+
+        <article class="mood-card">
+          <h3>Tap Sprint</h3>
+          <p id="vibeTapStatus" class="status tiny">Press start, then tap fast for 10s.</p>
+          <p id="vibeTapScore" class="big-number">0 taps</p>
+          <div class="mini-actions">
+            <button id="vibeTapStartBtn" class="btn ghost" type="button">Start</button>
+            <button id="vibeTapBtn" class="btn primary tap-button" type="button" disabled>TAP</button>
+          </div>
         </article>
 
         <article class="mood-card journal-card">

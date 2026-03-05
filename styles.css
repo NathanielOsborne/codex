@@ -613,3 +613,21 @@ body.celebration .particle-layer {
 
 
 
+
+.oracle-text {
+  min-height: 2.7em;
+}
+
+.tap-button {
+  min-width: 90px;
+  font-size: 1rem;
+}
+
+.tap-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.vibe-zone .big-number {
+  margin: 0.35rem 0;
+}

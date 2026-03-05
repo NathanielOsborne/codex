@@ -48,6 +48,13 @@ const vibeMissions = {
   calm: ["1. Quiet minute", "2. Clear top priority", "3. Move steadily"]
 };
 
+const vibeOracle = {
+  focused: ["Lock one task and finish it.", "Delete one distraction.", "Ship before editing."],
+  chill: ["Stretch your shoulders now.", "Sip water slowly.", "Take a gentle 2-min pause."],
+  energetic: ["Start a 10-min sprint.", "Move fast and imperfect.", "Publish a tiny win."],
+  calm: ["Breathe 4 in, 6 out.", "Slow your pace by 20%.", "Choose clarity over speed."]
+};
+
 const moodSoundPatterns = {
   focused: [392, 440, 523.25],
   chill: [261.63, 329.63, 392],
@@ -89,10 +96,17 @@ const vibeMicroChallenge = document.getElementById("vibeMicroChallenge");
 const vibeChallengeBtn = document.getElementById("vibeChallengeBtn");
 const vibeBurstBtn = document.getElementById("vibeBurstBtn");
 const vibeSoundBtn = document.getElementById("vibeSoundBtn");
+const vibeShuffleMoodBtn = document.getElementById("vibeShuffleMoodBtn");
 const vibeActionStatus = document.getElementById("vibeActionStatus");
 const vibeEnergy = document.getElementById("vibeEnergy");
 const vibeEnergyStatus = document.getElementById("vibeEnergyStatus");
 const vibeMissionList = document.getElementById("vibeMissionList");
+const vibeOracleBtn = document.getElementById("vibeOracleBtn");
+const vibeOracleText = document.getElementById("vibeOracleText");
+const vibeTapStartBtn = document.getElementById("vibeTapStartBtn");
+const vibeTapBtn = document.getElementById("vibeTapBtn");
+const vibeTapStatus = document.getElementById("vibeTapStatus");
+const vibeTapScore = document.getElementById("vibeTapScore");
 
 const particleLayer = document.getElementById("particleLayer");
 const yearEl = document.getElementById("year");
@@ -102,6 +116,9 @@ let allRepos = [];
 let breatheTimer = null;
 let audioContext = null;
 let soundEnabled = parseJsonFromStorage(moodSoundKey, true) !== false;
+let tapTimer = null;
+let tapCount = 0;
+let tapSecondsLeft = 10;
 
 if (githubProfileLink) {
   githubProfileLink.href = `https://github.com/${githubUsername}`;
@@ -181,6 +198,60 @@ function playMoodSound(mood) {
     osc.start(t0);
     osc.stop(t1 + 0.02);
   });
+}
+
+function playCelebrateSound() {
+  if (!soundEnabled) return;
+  const ctx = ensureAudioContext();
+  if (!ctx) return;
+
+  const now = ctx.currentTime + 0.01;
+  const chord = [392, 523.25, 659.25, 783.99];
+
+  chord.forEach((freq, i) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = i % 2 === 0 ? "triangle" : "sine";
+    osc.frequency.value = freq;
+
+    const t0 = now + i * 0.05;
+    const t1 = t0 + 0.35;
+
+    gain.gain.setValueAtTime(0.0001, t0);
+    gain.gain.exponentialRampToValueAtTime(0.11, t0 + 0.05);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t1);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(t0);
+    osc.stop(t1 + 0.04);
+  });
+
+  const bass = ctx.createOscillator();
+  const bassGain = ctx.createGain();
+  bass.type = "sine";
+  bass.frequency.value = 110;
+  bassGain.gain.setValueAtTime(0.0001, now);
+  bassGain.gain.exponentialRampToValueAtTime(0.09, now + 0.04);
+  bassGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.28);
+  bass.connect(bassGain);
+  bassGain.connect(ctx.destination);
+  bass.start(now);
+  bass.stop(now + 0.32);
+
+  const noiseBuffer = ctx.createBuffer(1, ctx.sampleRate * 0.2, ctx.sampleRate);
+  const channel = noiseBuffer.getChannelData(0);
+  for (let i = 0; i < channel.length; i += 1) {
+    channel[i] = (Math.random() * 2 - 1) * (1 - i / channel.length);
+  }
+  const noise = ctx.createBufferSource();
+  noise.buffer = noiseBuffer;
+  const noiseGain = ctx.createGain();
+  noiseGain.gain.setValueAtTime(0.05, now);
+  noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.2);
+  noise.connect(noiseGain);
+  noiseGain.connect(ctx.destination);
+  noise.start(now + 0.02);
 }
 
 function updateSoundButtonLabel() {
@@ -359,6 +430,7 @@ function triggerCelebration() {
   const moodSection = document.getElementById("mood") || document.getElementById("vibeZone");
   if (!moodSection) return;
 
+  playCelebrateSound();
   document.body.classList.add("celebration");
   setTimeout(() => document.body.classList.remove("celebration"), 880);
 
@@ -397,7 +469,7 @@ function triggerCelebration() {
     setTimeout(() => sparkle.remove(), 980);
   }
 
-  spawnFloatingDots(120, 1.6);
+  spawnFloatingDots(140, 1.8);
 }
 
 function startBreathingTimer() {
@@ -556,49 +628,106 @@ async function loadRepos() {
   }
 }
 
+function startTapSprint(activeMood) {
+  if (!vibeTapBtn || !vibeTapStatus || !vibeTapScore || !vibeTapStartBtn) return;
+
+  if (tapTimer) {
+    clearInterval(tapTimer);
+    tapTimer = null;
+  }
+
+  tapCount = 0;
+  tapSecondsLeft = 10;
+  vibeTapBtn.disabled = false;
+  vibeTapStartBtn.disabled = true;
+  vibeTapScore.textContent = "0 taps";
+  vibeTapStatus.textContent = `Go! ${tapSecondsLeft}s left.`;
+
+  tapTimer = setInterval(() => {
+    tapSecondsLeft -= 1;
+    if (tapSecondsLeft <= 0) {
+      clearInterval(tapTimer);
+      tapTimer = null;
+      vibeTapBtn.disabled = true;
+      vibeTapStartBtn.disabled = false;
+
+      const tier = tapCount >= 45 ? "Legend" : tapCount >= 30 ? "Strong" : tapCount >= 18 ? "Nice" : "Warm-up";
+      vibeTapStatus.textContent = `${tier} run (${tapCount} taps).`;
+      if (vibeActionStatus) vibeActionStatus.textContent = `Tap sprint finished for ${activeMood}.`;
+      playMoodSound(activeMood);
+      return;
+    }
+
+    vibeTapStatus.textContent = `Go! ${tapSecondsLeft}s left.`;
+  }, 1000);
+}
+
 function initVibePage() {
   if (!vibeTitle || !vibeLead || !vibeMoodBadge || !vibePrompt || !vibeMicroChallenge || !vibeMissionList) {
     return;
   }
 
-  const mood = getActiveMood();
-  applyMood(mood, { playSound: false });
+  let activeMood = getActiveMood();
 
-  vibeTitle.textContent = `${moodContent[mood].emoji} ${mood.charAt(0).toUpperCase() + mood.slice(1)} Mode`;
-  vibeLead.textContent = moodContent[mood].quote;
-  vibeMoodBadge.textContent = `Mood: ${moodContent[mood].emoji} ${mood}`;
-  vibePrompt.textContent = moodContent[mood].quote;
-  vibeMicroChallenge.textContent = moodContent[mood].challenge;
+  const renderVibeMood = () => {
+    applyMood(activeMood, { playSound: false });
+    vibeTitle.textContent = `${moodContent[activeMood].emoji} ${activeMood.charAt(0).toUpperCase() + activeMood.slice(1)} Mode`;
+    vibeLead.textContent = moodContent[activeMood].quote;
+    vibeMoodBadge.textContent = `Mood: ${moodContent[activeMood].emoji} ${activeMood}`;
+    vibePrompt.textContent = moodContent[activeMood].quote;
+    vibeMicroChallenge.textContent = moodContent[activeMood].challenge;
 
-  vibeMissionList.innerHTML = "";
-  vibeMissions[mood].forEach((mission) => {
-    const li = document.createElement("li");
-    li.textContent = mission;
-    vibeMissionList.appendChild(li);
-  });
+    vibeMissionList.innerHTML = "";
+    vibeMissions[activeMood].forEach((mission) => {
+      const li = document.createElement("li");
+      li.textContent = mission;
+      vibeMissionList.appendChild(li);
+    });
+  };
+
+  renderVibeMood();
 
   if (vibeChallengeBtn) {
     vibeChallengeBtn.addEventListener("click", () => {
-      const picks = vibeChallenges[mood];
+      const picks = vibeChallenges[activeMood];
       const next = picks[Math.floor(Math.random() * picks.length)];
       vibeMicroChallenge.textContent = next;
       if (vibeActionStatus) vibeActionStatus.textContent = "New challenge loaded.";
-      playMoodSound(mood);
+      playMoodSound(activeMood);
     });
   }
 
   if (vibeBurstBtn) {
     vibeBurstBtn.addEventListener("click", () => {
       triggerCelebration();
-      spawnFloatingDots(80, 1.3);
+      spawnFloatingDots(110, 1.5);
       if (vibeActionStatus) vibeActionStatus.textContent = "Burst activated.";
     });
   }
 
   if (vibeSoundBtn) {
     vibeSoundBtn.addEventListener("click", () => {
-      playMoodSound(mood);
+      playMoodSound(activeMood);
       if (vibeActionStatus) vibeActionStatus.textContent = "Mood sound played.";
+    });
+  }
+
+  if (vibeShuffleMoodBtn) {
+    vibeShuffleMoodBtn.addEventListener("click", () => {
+      activeMood = validMoods[Math.floor(Math.random() * validMoods.length)];
+      saveTodayMood(activeMood);
+      renderVibeMood();
+      playMoodSound(activeMood);
+      if (vibeActionStatus) vibeActionStatus.textContent = `Mood shuffled to ${activeMood}.`;
+    });
+  }
+
+  if (vibeOracleBtn && vibeOracleText) {
+    vibeOracleBtn.addEventListener("click", () => {
+      const cards = vibeOracle[activeMood];
+      vibeOracleText.textContent = cards[Math.floor(Math.random() * cards.length)];
+      if (vibeActionStatus) vibeActionStatus.textContent = "Oracle card drawn.";
+      playMoodSound(activeMood);
     });
   }
 
@@ -606,8 +735,24 @@ function initVibePage() {
     vibeEnergy.addEventListener("input", () => {
       const value = Number(vibeEnergy.value);
       vibeEnergyStatus.textContent = `Energy: ${value}`;
-      if (value >= 9) spawnFloatingDots(24, 1.2);
+      if (value >= 8) {
+        spawnFloatingDots(value * 3, 1 + value / 10);
+      }
     });
+  }
+
+  if (vibeTapBtn && vibeTapScore) {
+    vibeTapBtn.addEventListener("click", () => {
+      tapCount += 1;
+      vibeTapScore.textContent = `${tapCount} taps`;
+      if (tapCount % 10 === 0) {
+        playMoodSound(activeMood);
+      }
+    });
+  }
+
+  if (vibeTapStartBtn) {
+    vibeTapStartBtn.addEventListener("click", () => startTapSprint(activeMood));
   }
 }
 
@@ -631,7 +776,7 @@ if (randomMoodBtn) {
 if (celebrateBtn) {
   celebrateBtn.addEventListener("click", () => {
     triggerCelebration();
-    spawnFloatingDots(64, 1.2);
+    spawnFloatingDots(96, 1.5);
   });
 }
 
