@@ -66,8 +66,8 @@ body[data-mood="calm"] {
 body[data-theme="dark"] {
   --bg-1: #10131c;
   --bg-2: #171d2a;
-  --text: #edf2ff;
-  --muted: #a8b4cc;
+  --text: #000000;
+  --muted: #000000;
   --particle-color: rgba(255, 255, 255, 0.14);
 }
 
@@ -733,3 +733,7 @@ body.celebration .particle-layer {
   padding: 1.05rem;
 }
 
+body[data-theme="dark"] .btn.primary,
+body[data-theme="dark"] .mood-btn.active {
+  color: #000000;
+}

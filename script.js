@@ -306,12 +306,17 @@ function setMoodContent(mood) {
   moodPlaylist.setAttribute("aria-label", `Open ${mood.charAt(0).toUpperCase() + mood.slice(1)} Spotify playlist`);
 }
 
-function applyMood(mood) {
+function applyMood(mood, options = {}) {
+  const { playSound = false } = options;
   if (!validMoods.includes(mood)) return;
 
   document.body.dataset.mood = mood;
   setActiveMoodButton(mood);
   setMoodContent(mood);
+  if (playSound) {
+    primeAudioContext();
+    playMoodSound(mood);
+  }
 
   if (moodStatus) {
     moodStatus.textContent = `${mood.charAt(0).toUpperCase() + mood.slice(1)} vibe active.`;
@@ -884,6 +889,7 @@ function initVibePage() {
   if (vibeShuffleMoodBtn) {
     vibeShuffleMoodBtn.addEventListener("click", () => {
       activeMood = validMoods[Math.floor(Math.random() * validMoods.length)];
+      applyMood(activeMood, { playSound: true });
       saveTodayMood(activeMood);
       renderVibeMood();
       if (vibeActionStatus) vibeActionStatus.textContent = `Mood shuffled to ${activeMood}.`;
@@ -947,7 +953,7 @@ function initVibePage() {
 moodButtons.forEach((button) => {
   button.addEventListener("click", () => {
     const mood = button.dataset.mood;
-    applyMood(mood);
+    applyMood(mood, { playSound: true });
     saveTodayMood(mood);
   });
 });
@@ -955,7 +961,7 @@ moodButtons.forEach((button) => {
 if (randomMoodBtn) {
   randomMoodBtn.addEventListener("click", () => {
     const mood = validMoods[Math.floor(Math.random() * validMoods.length)];
-    applyMood(mood);
+    applyMood(mood, { playSound: true });
     saveTodayMood(mood);
     triggerCelebration();
   });
@@ -970,7 +976,7 @@ if (replayYesterdayBtn) {
     const mood = history[key];
     if (!mood || !moodContent[mood]) return;
 
-    applyMood(mood);
+    applyMood(mood, { playSound: true });
     triggerCelebration();
     if (moodStatus) moodStatus.textContent = `Replaying yesterday: ${mood}.`;
   });
@@ -1018,4 +1024,6 @@ createParticles();
 setupRevealAnimations();
 initVibePage();
 loadRepos();
+
+
 
