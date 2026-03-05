@@ -432,6 +432,17 @@ h1 {
   flex-wrap: wrap;
 }
 
+.controls-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.72rem;
+}
+
+.controls-actions .btn {
+  width: 100%;
+  text-align: center;
+}
+
 .filters {
   margin-top: 0.9rem;
   display: flex;
