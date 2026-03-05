@@ -34,6 +34,20 @@ const moodContent = {
   }
 };
 
+const vibeChallenges = {
+  focused: ["Do a 15-min deep sprint now.", "Clear one tiny todo in 3 mins.", "Close all tabs except one."],
+  chill: ["Stretch for 60 seconds.", "Drink water slowly.", "Step away from screens for 2 mins."],
+  energetic: ["Do 20 quick taps on your desk.", "Launch one quick task now.", "Set a 10-min speed round."],
+  calm: ["Inhale 4s, exhale 6s x 5.", "Relax your shoulders now.", "Write one grateful line."]
+};
+
+const vibeMissions = {
+  focused: ["1. Pick one goal", "2. 25-min timer", "3. Ship result"],
+  chill: ["1. Slow breathing", "2. Walk break", "3. Gentle restart"],
+  energetic: ["1. Quick warm-up", "2. Sprint task", "3. Celebrate win"],
+  calm: ["1. Quiet minute", "2. Clear top priority", "3. Move steadily"]
+};
+
 const moodSoundPatterns = {
   focused: [392, 440, 523.25],
   chill: [261.63, 329.63, 392],
@@ -67,6 +81,19 @@ const soundToggleBtn = document.getElementById("soundToggleBtn");
 const journalNote = document.getElementById("journalNote");
 const journalStatus = document.getElementById("journalStatus");
 
+const vibeTitle = document.getElementById("vibeTitle");
+const vibeLead = document.getElementById("vibeLead");
+const vibeMoodBadge = document.getElementById("vibeMoodBadge");
+const vibePrompt = document.getElementById("vibePrompt");
+const vibeMicroChallenge = document.getElementById("vibeMicroChallenge");
+const vibeChallengeBtn = document.getElementById("vibeChallengeBtn");
+const vibeBurstBtn = document.getElementById("vibeBurstBtn");
+const vibeSoundBtn = document.getElementById("vibeSoundBtn");
+const vibeActionStatus = document.getElementById("vibeActionStatus");
+const vibeEnergy = document.getElementById("vibeEnergy");
+const vibeEnergyStatus = document.getElementById("vibeEnergyStatus");
+const vibeMissionList = document.getElementById("vibeMissionList");
+
 const particleLayer = document.getElementById("particleLayer");
 const yearEl = document.getElementById("year");
 const revealEls = [...document.querySelectorAll(".reveal")];
@@ -96,6 +123,20 @@ function parseJsonFromStorage(key, fallback) {
   } catch {
     return fallback;
   }
+}
+
+function getActiveMood() {
+  const saved = parseJsonFromStorage(moodStorageKey, null);
+  if (saved && validMoods.includes(saved.mood)) return saved.mood;
+
+  const history = parseJsonFromStorage(moodHistoryKey, {});
+  const dates = Object.keys(history).sort().reverse();
+  for (const date of dates) {
+    const mood = history[date];
+    if (validMoods.includes(mood)) return mood;
+  }
+
+  return "chill";
 }
 
 function ensureAudioContext() {
@@ -128,11 +169,11 @@ function playMoodSound(mood) {
     osc.type = mood === "energetic" ? "sawtooth" : mood === "focused" ? "triangle" : "sine";
     osc.frequency.value = frequency;
 
-    const t0 = start + index * 0.13;
-    const t1 = t0 + 0.12;
+    const t0 = start + index * 0.12;
+    const t1 = t0 + 0.14;
 
     gain.gain.setValueAtTime(0.0001, t0);
-    gain.gain.exponentialRampToValueAtTime(0.08, t0 + 0.03);
+    gain.gain.exponentialRampToValueAtTime(0.09, t0 + 0.03);
     gain.gain.exponentialRampToValueAtTime(0.0001, t1);
 
     osc.connect(gain);
@@ -175,7 +216,6 @@ function setMoodContent(mood) {
 
 function applyMood(mood, options = {}) {
   if (!validMoods.includes(mood)) return;
-
   const { playSound = false } = options;
 
   document.body.dataset.mood = mood;
@@ -299,47 +339,65 @@ function createParticles() {
   }
 }
 
+function spawnFloatingDots(count = 28, spread = 1) {
+  for (let i = 0; i < count; i += 1) {
+    const dot = document.createElement("span");
+    dot.className = "burst-dot";
+    dot.style.left = `${(Math.random() * 100).toFixed(2)}vw`;
+    dot.style.bottom = `${(-8 - Math.random() * 30).toFixed(1)}px`;
+    dot.style.width = `${(4 + Math.random() * 8 * spread).toFixed(1)}px`;
+    dot.style.height = dot.style.width;
+    dot.style.animationDuration = `${(2.8 + Math.random() * 2.4).toFixed(2)}s`;
+    dot.style.animationDelay = `${(Math.random() * 0.22).toFixed(2)}s`;
+
+    document.body.appendChild(dot);
+    setTimeout(() => dot.remove(), 6000);
+  }
+}
+
 function triggerCelebration() {
-  const moodSection = document.getElementById("mood");
+  const moodSection = document.getElementById("mood") || document.getElementById("vibeZone");
   if (!moodSection) return;
 
   document.body.classList.add("celebration");
-  setTimeout(() => document.body.classList.remove("celebration"), 760);
+  setTimeout(() => document.body.classList.remove("celebration"), 880);
 
   const moodRect = moodSection.getBoundingClientRect();
   const centerX = moodRect.left + window.scrollX + moodRect.width / 2;
   const centerY = moodRect.top + window.scrollY + 90;
 
-  for (let i = 0; i < 44; i += 1) {
+  for (let i = 0; i < 72; i += 1) {
     const spark = document.createElement("span");
     spark.className = "spark";
     spark.style.left = `${centerX}px`;
     spark.style.top = `${centerY}px`;
 
-    const angle = (Math.PI * 2 * i) / 44;
-    const distance = 40 + Math.random() * 140;
-    spark.style.width = `${6 + Math.random() * 8}px`;
+    const angle = (Math.PI * 2 * i) / 72;
+    const distance = 70 + Math.random() * 220;
+    spark.style.width = `${8 + Math.random() * 12}px`;
     spark.style.height = spark.style.width;
     spark.style.setProperty("--dx", `${Math.cos(angle) * distance}px`);
     spark.style.setProperty("--dy", `${Math.sin(angle) * distance}px`);
 
     document.body.appendChild(spark);
-    setTimeout(() => spark.remove(), 820);
+    setTimeout(() => spark.remove(), 980);
   }
 
-  for (let i = 0; i < 14; i += 1) {
+  for (let i = 0; i < 28; i += 1) {
     const sparkle = document.createElement("span");
     sparkle.className = "spark";
     sparkle.style.left = `${(Math.random() * window.innerWidth).toFixed(1)}px`;
     sparkle.style.top = `${(Math.random() * window.innerHeight).toFixed(1)}px`;
-    sparkle.style.width = "10px";
-    sparkle.style.height = "10px";
-    sparkle.style.setProperty("--dx", `${(Math.random() - 0.5) * 120}px`);
-    sparkle.style.setProperty("--dy", `${(Math.random() - 0.5) * 120}px`);
+    sparkle.style.width = `${8 + Math.random() * 6}px`;
+    sparkle.style.height = sparkle.style.width;
+    sparkle.style.setProperty("--dx", `${(Math.random() - 0.5) * 180}px`);
+    sparkle.style.setProperty("--dy", `${(Math.random() - 0.5) * 180}px`);
 
     document.body.appendChild(sparkle);
-    setTimeout(() => sparkle.remove(), 820);
+    setTimeout(() => sparkle.remove(), 980);
   }
+
+  spawnFloatingDots(120, 1.6);
 }
 
 function startBreathingTimer() {
@@ -498,6 +556,61 @@ async function loadRepos() {
   }
 }
 
+function initVibePage() {
+  if (!vibeTitle || !vibeLead || !vibeMoodBadge || !vibePrompt || !vibeMicroChallenge || !vibeMissionList) {
+    return;
+  }
+
+  const mood = getActiveMood();
+  applyMood(mood, { playSound: false });
+
+  vibeTitle.textContent = `${moodContent[mood].emoji} ${mood.charAt(0).toUpperCase() + mood.slice(1)} Mode`;
+  vibeLead.textContent = moodContent[mood].quote;
+  vibeMoodBadge.textContent = `Mood: ${moodContent[mood].emoji} ${mood}`;
+  vibePrompt.textContent = moodContent[mood].quote;
+  vibeMicroChallenge.textContent = moodContent[mood].challenge;
+
+  vibeMissionList.innerHTML = "";
+  vibeMissions[mood].forEach((mission) => {
+    const li = document.createElement("li");
+    li.textContent = mission;
+    vibeMissionList.appendChild(li);
+  });
+
+  if (vibeChallengeBtn) {
+    vibeChallengeBtn.addEventListener("click", () => {
+      const picks = vibeChallenges[mood];
+      const next = picks[Math.floor(Math.random() * picks.length)];
+      vibeMicroChallenge.textContent = next;
+      if (vibeActionStatus) vibeActionStatus.textContent = "New challenge loaded.";
+      playMoodSound(mood);
+    });
+  }
+
+  if (vibeBurstBtn) {
+    vibeBurstBtn.addEventListener("click", () => {
+      triggerCelebration();
+      spawnFloatingDots(80, 1.3);
+      if (vibeActionStatus) vibeActionStatus.textContent = "Burst activated.";
+    });
+  }
+
+  if (vibeSoundBtn) {
+    vibeSoundBtn.addEventListener("click", () => {
+      playMoodSound(mood);
+      if (vibeActionStatus) vibeActionStatus.textContent = "Mood sound played.";
+    });
+  }
+
+  if (vibeEnergy && vibeEnergyStatus) {
+    vibeEnergy.addEventListener("input", () => {
+      const value = Number(vibeEnergy.value);
+      vibeEnergyStatus.textContent = `Energy: ${value}`;
+      if (value >= 9) spawnFloatingDots(24, 1.2);
+    });
+  }
+}
+
 moodButtons.forEach((button) => {
   button.addEventListener("click", () => {
     const mood = button.dataset.mood;
@@ -516,7 +629,10 @@ if (randomMoodBtn) {
 }
 
 if (celebrateBtn) {
-  celebrateBtn.addEventListener("click", triggerCelebration);
+  celebrateBtn.addEventListener("click", () => {
+    triggerCelebration();
+    spawnFloatingDots(64, 1.2);
+  });
 }
 
 if (breatheBtn) {
@@ -553,5 +669,5 @@ renderMoodHistory();
 setupJournal();
 createParticles();
 setupRevealAnimations();
+initVibePage();
 loadRepos();
-

@@ -519,17 +519,6 @@ footer {
   }
 }
 
-body.celebration .bg-glow {
-  animation: glow-bounce 720ms ease-out;
-}
-
-body.celebration .bg-grid {
-  animation: grid-spin 720ms ease-out;
-}
-
-body.celebration .particle-layer {
-  filter: saturate(1.5) brightness(1.15);
-}
 
 @keyframes glow-bounce {
   0% {
@@ -564,3 +553,63 @@ body.celebration .particle-layer {
     opacity: 1;
   }
 }
+
+.burst-dot {
+  position: fixed;
+  border-radius: 999px;
+  background: var(--particle-color);
+  z-index: 1;
+  pointer-events: none;
+  animation: burst-float 4s ease-out forwards;
+}
+
+@keyframes burst-float {
+  0% {
+    transform: translateY(0) scale(0.8);
+    opacity: 0;
+  }
+
+  10% {
+    opacity: 0.9;
+  }
+
+  100% {
+    transform: translateY(-115vh) scale(1.15);
+    opacity: 0;
+  }
+}
+
+body.celebration .bg-glow {
+  animation: glow-bounce 900ms ease-out;
+}
+
+body.celebration .bg-grid {
+  animation: grid-spin 900ms ease-out;
+}
+
+body.celebration .particle-layer {
+  filter: saturate(1.7) brightness(1.2);
+}
+
+.vibe-zone .mood-lab-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.vibe-zone input[type="range"] {
+  width: 100%;
+}
+
+@media (max-width: 980px) {
+  .vibe-zone .mood-lab-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 680px) {
+  .vibe-zone .mood-lab-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+

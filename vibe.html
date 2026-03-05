@@ -1,0 +1,77 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nathaniel Osborne | Vibe Play</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="bg-grid" aria-hidden="true"></div>
+  <div class="bg-glow" aria-hidden="true"></div>
+  <div id="particleLayer" class="particle-layer" aria-hidden="true"></div>
+
+  <header class="topbar reveal">
+    <a class="brand" href="./index.html">Nathaniel Osborne</a>
+    <nav class="topnav topnav-tabs">
+      <a class="tab-link" href="./index.html">Home</a>
+      <a class="tab-link" href="./repos.html">Projects</a>
+      <a class="tab-link active" href="./vibe.html">Vibe Play</a>
+    </nav>
+    <a class="btn primary" href="https://github.com/NathanielOsborne" target="_blank" rel="noreferrer">Connect</a>
+  </header>
+
+  <main>
+    <section class="hero reveal">
+      <p class="eyebrow">Vibe Play</p>
+      <h1 id="vibeTitle">Mood game space.</h1>
+      <p id="vibeLead" class="lead">Loads from your Home mood pick.</p>
+    </section>
+
+    <section class="mood reveal vibe-zone" id="vibeZone">
+      <div class="section-head">
+        <h2>Your Mood Arena</h2>
+        <p id="vibeMoodBadge">Mood: -</p>
+      </div>
+
+      <div class="mood-lab-grid">
+        <article class="mood-card quote-card">
+          <h3>Live Prompt</h3>
+          <p id="vibePrompt">Pick mood on Home first.</p>
+          <p id="vibeMicroChallenge" class="challenge"></p>
+        </article>
+
+        <article class="mood-card">
+          <h3>Actions</h3>
+          <div class="mini-actions">
+            <button id="vibeChallengeBtn" class="btn ghost" type="button">New Challenge</button>
+            <button id="vibeBurstBtn" class="btn ghost" type="button">Vibe Burst</button>
+            <button id="vibeSoundBtn" class="btn ghost" type="button">Play Mood Sound</button>
+          </div>
+          <p id="vibeActionStatus" class="status tiny">Ready.</p>
+        </article>
+
+        <article class="mood-card">
+          <h3>Energy Slider</h3>
+          <input id="vibeEnergy" type="range" min="1" max="10" value="6" />
+          <p id="vibeEnergyStatus" class="status tiny">Energy: 6</p>
+        </article>
+
+        <article class="mood-card journal-card">
+          <h3>Mood Mission</h3>
+          <ul id="vibeMissionList" class="history-list"></ul>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <small><span id="year"></span> Nathaniel Osborne.</small>
+  </footer>
+
+  <script src="./script.js"></script>
+</body>
+</html>
