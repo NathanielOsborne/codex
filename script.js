@@ -4,33 +4,41 @@ const apiUrl = `https://api.github.com/users/${githubUsername}/repos?sort=update
 const moodStorageKey = "dailyMoodVibe";
 const moodHistoryKey = "dailyMoodHistory";
 const moodNoteKey = "dailyMoodJournal";
+const moodSoundKey = "dailyMoodSoundEnabled";
 
 const validMoods = ["focused", "chill", "energetic", "calm"];
 const moodContent = {
   focused: {
     emoji: "🧠",
-    quote: "Small focused sessions compound into massive progress.",
-    challenge: "Challenge: complete one 25-minute deep-work sprint.",
+    quote: "One focused block beats scattered effort.",
+    challenge: "Do one 25-min deep-work sprint.",
     playlist: "https://open.spotify.com/search/deep%20focus"
   },
   chill: {
     emoji: "😎",
-    quote: "Relaxed energy helps creativity flow naturally.",
-    challenge: "Challenge: take a 10-minute walk without your phone.",
+    quote: "Slow down and let ideas breathe.",
+    challenge: "Take a phone-free 10-min walk.",
     playlist: "https://open.spotify.com/search/chill%20vibes"
   },
   energetic: {
     emoji: "⚡",
-    quote: "Use your momentum while your energy is high.",
-    challenge: "Challenge: ship one thing in the next hour.",
+    quote: "Ride the momentum while it is here.",
+    challenge: "Ship one small thing in an hour.",
     playlist: "https://open.spotify.com/search/high%20energy"
   },
   calm: {
     emoji: "🌿",
-    quote: "Calm minds make clear decisions.",
-    challenge: "Challenge: take five slow breaths before your next task.",
+    quote: "Calm mind, clear decisions.",
+    challenge: "Take five slow breaths now.",
     playlist: "https://open.spotify.com/search/calm%20focus"
   }
+};
+
+const moodSoundPatterns = {
+  focused: [392, 440, 523.25],
+  chill: [261.63, 329.63, 392],
+  energetic: [523.25, 659.25, 783.99],
+  calm: [329.63, 293.66, 261.63]
 };
 
 const repoGrid = document.getElementById("repoGrid");
@@ -54,6 +62,7 @@ const randomMoodBtn = document.getElementById("randomMoodBtn");
 const celebrateBtn = document.getElementById("celebrateBtn");
 const breatheBtn = document.getElementById("breatheBtn");
 const breatheStatus = document.getElementById("breatheStatus");
+const soundToggleBtn = document.getElementById("soundToggleBtn");
 
 const journalNote = document.getElementById("journalNote");
 const journalStatus = document.getElementById("journalStatus");
@@ -64,6 +73,8 @@ const revealEls = [...document.querySelectorAll(".reveal")];
 
 let allRepos = [];
 let breatheTimer = null;
+let audioContext = null;
+let soundEnabled = parseJsonFromStorage(moodSoundKey, true) !== false;
 
 if (githubProfileLink) {
   githubProfileLink.href = `https://github.com/${githubUsername}`;
@@ -85,6 +96,55 @@ function parseJsonFromStorage(key, fallback) {
   } catch {
     return fallback;
   }
+}
+
+function ensureAudioContext() {
+  if (!audioContext) {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return null;
+    audioContext = new Ctx();
+  }
+
+  if (audioContext.state === "suspended") {
+    audioContext.resume();
+  }
+
+  return audioContext;
+}
+
+function playMoodSound(mood) {
+  if (!soundEnabled) return;
+  const notes = moodSoundPatterns[mood];
+  if (!notes || !notes.length) return;
+
+  const ctx = ensureAudioContext();
+  if (!ctx) return;
+
+  const start = ctx.currentTime + 0.01;
+  notes.forEach((frequency, index) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+
+    osc.type = mood === "energetic" ? "sawtooth" : mood === "focused" ? "triangle" : "sine";
+    osc.frequency.value = frequency;
+
+    const t0 = start + index * 0.13;
+    const t1 = t0 + 0.12;
+
+    gain.gain.setValueAtTime(0.0001, t0);
+    gain.gain.exponentialRampToValueAtTime(0.08, t0 + 0.03);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t1);
+
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start(t0);
+    osc.stop(t1 + 0.02);
+  });
+}
+
+function updateSoundButtonLabel() {
+  if (!soundToggleBtn) return;
+  soundToggleBtn.textContent = soundEnabled ? "Sound: On" : "Sound: Off";
 }
 
 function setActiveMoodButton(selectedMood) {
@@ -113,13 +173,21 @@ function setMoodContent(mood) {
   moodPlaylist.textContent = `Open ${mood.charAt(0).toUpperCase() + mood.slice(1)} Playlist`;
 }
 
-function applyMood(mood) {
+function applyMood(mood, options = {}) {
   if (!validMoods.includes(mood)) return;
+
+  const { playSound = false } = options;
+
   document.body.dataset.mood = mood;
   setActiveMoodButton(mood);
   setMoodContent(mood);
+
   if (moodStatus) {
-    moodStatus.textContent = `${mood.charAt(0).toUpperCase() + mood.slice(1)} vibe is active for today.`;
+    moodStatus.textContent = `${mood.charAt(0).toUpperCase() + mood.slice(1)} vibe active.`;
+  }
+
+  if (playSound) {
+    playMoodSound(mood);
   }
 }
 
@@ -187,7 +255,7 @@ function renderMoodHistory() {
 
   if (!dates.length) {
     const item = document.createElement("li");
-    item.textContent = "No history yet. Pick your first mood today.";
+    item.textContent = "No history yet.";
     moodHistory.appendChild(item);
     return;
   }
@@ -203,7 +271,7 @@ function renderMoodHistory() {
 function restoreMoodForToday() {
   const saved = parseJsonFromStorage(moodStorageKey, null);
   if (saved && saved.date === todayString() && validMoods.includes(saved.mood)) {
-    applyMood(saved.mood);
+    applyMood(saved.mood, { playSound: false });
   } else {
     setMoodContent("");
   }
@@ -236,8 +304,8 @@ function triggerCelebration() {
   if (!moodSection) return;
 
   const moodRect = moodSection.getBoundingClientRect();
-  const centerX = moodRect.left + moodRect.width / 2;
-  const centerY = moodRect.top + 90;
+  const centerX = moodRect.left + window.scrollX + moodRect.width / 2;
+  const centerY = moodRect.top + window.scrollY + 90;
 
   for (let i = 0; i < 28; i += 1) {
     const spark = document.createElement("span");
@@ -256,7 +324,12 @@ function triggerCelebration() {
 }
 
 function startBreathingTimer() {
-  if (!breatheStatus || breatheTimer) return;
+  if (!breatheStatus) return;
+
+  if (breatheTimer) {
+    clearInterval(breatheTimer);
+    breatheTimer = null;
+  }
 
   let secondsLeft = 30;
   breatheStatus.textContent = `Breathe in... ${secondsLeft}s`;
@@ -266,7 +339,7 @@ function startBreathingTimer() {
     if (secondsLeft <= 0) {
       clearInterval(breatheTimer);
       breatheTimer = null;
-      breatheStatus.textContent = "Nice reset. You are back in flow.";
+      breatheStatus.textContent = "Reset complete.";
       return;
     }
 
@@ -286,7 +359,7 @@ function setupJournal() {
     const updated = parseJsonFromStorage(moodNoteKey, {});
     updated[today] = journalNote.value.trim();
     localStorage.setItem(moodNoteKey, JSON.stringify(updated));
-    journalStatus.textContent = "Saved for today.";
+    journalStatus.textContent = "Saved.";
   });
 }
 
@@ -401,7 +474,7 @@ async function loadRepos() {
     populateLanguageFilter(allRepos);
     renderRepos(allRepos);
   } catch (error) {
-    statusEl.textContent = "Unable to load repositories right now. Check your GitHub username or network access.";
+    statusEl.textContent = "Unable to load repositories right now.";
     console.error(error);
   }
 }
@@ -409,7 +482,7 @@ async function loadRepos() {
 moodButtons.forEach((button) => {
   button.addEventListener("click", () => {
     const mood = button.dataset.mood;
-    applyMood(mood);
+    applyMood(mood, { playSound: true });
     saveTodayMood(mood);
   });
 });
@@ -417,7 +490,7 @@ moodButtons.forEach((button) => {
 if (randomMoodBtn) {
   randomMoodBtn.addEventListener("click", () => {
     const mood = validMoods[Math.floor(Math.random() * validMoods.length)];
-    applyMood(mood);
+    applyMood(mood, { playSound: true });
     saveTodayMood(mood);
     triggerCelebration();
   });
@@ -429,6 +502,18 @@ if (celebrateBtn) {
 
 if (breatheBtn) {
   breatheBtn.addEventListener("click", startBreathingTimer);
+}
+
+if (soundToggleBtn) {
+  updateSoundButtonLabel();
+  soundToggleBtn.addEventListener("click", () => {
+    soundEnabled = !soundEnabled;
+    localStorage.setItem(moodSoundKey, JSON.stringify(soundEnabled));
+    updateSoundButtonLabel();
+    if (soundEnabled) {
+      playMoodSound("focused");
+    }
+  });
 }
 
 if (repoSearch) {

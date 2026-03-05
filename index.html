@@ -26,20 +26,20 @@
 
   <main>
     <section class="hero reveal">
-      <p class="eyebrow">Mood-Powered Portfolio</p>
-      <h1>Pick your vibe. The whole experience bends around your mood.</h1>
-      <p class="lead">This page is intentionally playful: dynamic themes, daily rituals, and mood-driven interactions layered on top of live project content.</p>
+      <p class="eyebrow">Mood Lab</p>
+      <h1>Pick your vibe. The page adapts instantly.</h1>
+      <p class="lead">Short rituals. Fun interactions. Mood-first design.</p>
       <div class="cta-row">
-        <a class="btn primary" id="githubProfile" href="https://github.com/NathanielOsborne" target="_blank" rel="noreferrer">See My GitHub</a>
-        <a class="btn ghost" href="#mood">Open Mood Lab</a>
+        <a class="btn primary" id="githubProfile" href="https://github.com/NathanielOsborne" target="_blank" rel="noreferrer">GitHub</a>
+        <a class="btn ghost" href="#mood">Open Lab</a>
       </div>
     </section>
 
     <section class="mood reveal" id="mood">
       <span id="moodEmoji" class="mood-emoji" aria-hidden="true">🙂</span>
       <div class="section-head">
-        <h2>Daily Mood Vibe</h2>
-        <p>Set once, enjoy all day.</p>
+        <h2>Daily Mood</h2>
+        <p>Pick once per day</p>
       </div>
 
       <div class="mood-options" role="group" aria-label="Choose your mood for today">
@@ -48,53 +48,54 @@
         <button class="mood-btn" data-mood="energetic" type="button">Energetic</button>
         <button class="mood-btn" data-mood="calm" type="button">Calm</button>
       </div>
-      <p id="moodStatus" class="status">No mood set for today yet.</p>
+      <p id="moodStatus" class="status">No mood set yet.</p>
 
       <div class="mood-lab-grid">
         <article class="mood-card stat-card">
-          <h3>Current Streak</h3>
+          <h3>Streak</h3>
           <p id="streakValue" class="big-number">0 days</p>
-          <small>Consecutive daily check-ins</small>
+          <small>Daily check-ins</small>
         </article>
 
         <article class="mood-card stat-card">
-          <h3>Total Check-ins</h3>
+          <h3>Check-ins</h3>
           <p id="checkinValue" class="big-number">0</p>
-          <small>Days you logged a mood</small>
+          <small>Total days</small>
         </article>
 
         <article class="mood-card stat-card">
-          <h3>Most Used Mood</h3>
+          <h3>Top Mood</h3>
           <p id="favoriteMood" class="big-number">-</p>
-          <small>Your vibe trend</small>
+          <small>Your trend</small>
         </article>
 
         <article class="mood-card quote-card">
-          <h3>Daily Mood Message</h3>
+          <h3>Message</h3>
           <p id="moodQuote">Pick a mood to unlock your message.</p>
           <p id="moodChallenge" class="challenge"></p>
         </article>
 
         <article class="mood-card">
-          <h3>Vibe Controls</h3>
+          <h3>Controls</h3>
           <div class="mini-actions">
-            <button id="randomMoodBtn" class="btn ghost" type="button">Surprise My Mood</button>
+            <button id="randomMoodBtn" class="btn ghost" type="button">Surprise</button>
             <button id="celebrateBtn" class="btn ghost" type="button">Celebrate</button>
             <button id="breatheBtn" class="btn ghost" type="button">Breathe 30s</button>
+            <button id="soundToggleBtn" class="btn ghost" type="button">Sound: On</button>
           </div>
-          <p id="breatheStatus" class="status tiny">Take a micro-break anytime.</p>
+          <p id="breatheStatus" class="status tiny">Quick reset anytime.</p>
         </article>
 
         <article class="mood-card">
           <h3>Soundtrack</h3>
-          <p>Open a matching vibe playlist.</p>
+          <p>Match your mood.</p>
           <a id="moodPlaylist" class="btn primary" href="https://open.spotify.com" target="_blank" rel="noreferrer">Open Playlist</a>
         </article>
 
         <article class="mood-card journal-card">
-          <h3>One-Line Mood Journal</h3>
-          <textarea id="journalNote" rows="3" placeholder="Write one sentence about today..."></textarea>
-          <p id="journalStatus" class="status tiny">Saved automatically for today.</p>
+          <h3>Journal</h3>
+          <textarea id="journalNote" rows="3" placeholder="One line for today..."></textarea>
+          <p id="journalStatus" class="status tiny">Saved for today.</p>
         </article>
 
         <article class="mood-card history-card">
@@ -106,18 +107,18 @@
 
     <section class="contact reveal" id="contact">
       <div class="section-head">
-        <h2>Want this kind of interactive experience for your site?</h2>
+        <h2>Need a site like this?</h2>
       </div>
-      <p>Let’s design something memorable and high-converting together.</p>
+      <p>Let’s build it.</p>
       <div class="cta-row">
-        <a class="btn primary" href="./repos.html">See Projects Tab</a>
-        <a class="btn ghost" href="https://github.com/NathanielOsborne" target="_blank" rel="noreferrer">Message on GitHub</a>
+        <a class="btn primary" href="./repos.html">Projects</a>
+        <a class="btn ghost" href="https://github.com/NathanielOsborne" target="_blank" rel="noreferrer">Message</a>
       </div>
     </section>
   </main>
 
   <footer>
-    <small><span id="year"></span> Nathaniel Osborne. Built with intention.</small>
+    <small><span id="year"></span> Nathaniel Osborne.</small>
   </footer>
 
   <script src="./script.js"></script>
