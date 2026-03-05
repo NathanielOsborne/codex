@@ -270,7 +270,7 @@ function updateSoundButtonLabel() {
 
 function updateThemeButtonLabel() {
   if (!themeToggleBtn) return;
-  themeToggleBtn.textContent = currentTheme === "dark" ? "Theme: Dark" : "Theme: Light";
+  themeToggleBtn.textContent = currentTheme === "dark" ? "Dark Mode: On" : "Dark Mode: Off";
 }
 
 function applyTheme(theme) {
@@ -306,11 +306,8 @@ function setMoodContent(mood) {
   moodPlaylist.setAttribute("aria-label", `Open ${mood.charAt(0).toUpperCase() + mood.slice(1)} Spotify playlist`);
 }
 
-function applyMood(mood, options = {}) {
+function applyMood(mood) {
   if (!validMoods.includes(mood)) return;
-
-  const { playMoodAudio = false } = options;
-  const previousMood = document.body.dataset.mood;
 
   document.body.dataset.mood = mood;
   setActiveMoodButton(mood);
@@ -318,10 +315,6 @@ function applyMood(mood, options = {}) {
 
   if (moodStatus) {
     moodStatus.textContent = `${mood.charAt(0).toUpperCase() + mood.slice(1)} vibe active.`;
-  }
-
-  if (playMoodAudio && previousMood !== mood) {
-    playMoodSound(mood);
   }
 }
 
@@ -415,7 +408,7 @@ function renderYesterdayMood() {
 function restoreMoodForToday() {
   const saved = parseJsonFromStorage(moodStorageKey, null);
   if (saved && saved.date === todayString() && validMoods.includes(saved.mood)) {
-    applyMood(saved.mood, { playMoodAudio: false });
+    applyMood(saved.mood);
   } else {
     setMoodContent("");
   }
@@ -814,7 +807,6 @@ function startTapSprint(activeMood) {
         localStorage.setItem(vibeTapHighScoreKey, JSON.stringify(tapBest));
         vibeTapHighScore.textContent = `High score: ${tapBest} taps`;
         vibeTapStatus.textContent = `New high score: ${tapBest}!`;
-        playCelebrateSound(true);
         triggerCelebration();
 
         oracleDrawsLeft += 1;
@@ -843,8 +835,8 @@ function initVibePage() {
   let activeMood = getActiveMood();
   loadOracleState(activeMood);
 
-  const renderVibeMood = (playMoodAudio = false) => {
-    applyMood(activeMood, { playMoodAudio });
+  const renderVibeMood = () => {
+    applyMood(activeMood);
     vibeTitle.textContent = `${moodContent[activeMood].emoji} ${activeMood.charAt(0).toUpperCase() + activeMood.slice(1)} Mode`;
     vibeLead.textContent = moodContent[activeMood].quote;
     vibeMoodBadge.textContent = `Mood: ${moodContent[activeMood].emoji} ${activeMood}`;
@@ -893,7 +885,7 @@ function initVibePage() {
     vibeShuffleMoodBtn.addEventListener("click", () => {
       activeMood = validMoods[Math.floor(Math.random() * validMoods.length)];
       saveTodayMood(activeMood);
-      renderVibeMood(true);
+      renderVibeMood();
       if (vibeActionStatus) vibeActionStatus.textContent = `Mood shuffled to ${activeMood}.`;
     });
   }
@@ -947,7 +939,6 @@ function initVibePage() {
 
   if (vibeTapStartBtn) {
     vibeTapStartBtn.addEventListener("click", () => {
-      primeAudioContext();
       startTapSprint(activeMood);
     });
   }
@@ -956,7 +947,7 @@ function initVibePage() {
 moodButtons.forEach((button) => {
   button.addEventListener("click", () => {
     const mood = button.dataset.mood;
-    applyMood(mood, { playMoodAudio: true });
+    applyMood(mood);
     saveTodayMood(mood);
   });
 });
@@ -964,7 +955,7 @@ moodButtons.forEach((button) => {
 if (randomMoodBtn) {
   randomMoodBtn.addEventListener("click", () => {
     const mood = validMoods[Math.floor(Math.random() * validMoods.length)];
-    applyMood(mood, { playMoodAudio: true });
+    applyMood(mood);
     saveTodayMood(mood);
     triggerCelebration();
   });
@@ -979,7 +970,7 @@ if (replayYesterdayBtn) {
     const mood = history[key];
     if (!mood || !moodContent[mood]) return;
 
-    applyMood(mood, { playMoodAudio: true });
+    applyMood(mood);
     triggerCelebration();
     if (moodStatus) moodStatus.textContent = `Replaying yesterday: ${mood}.`;
   });
@@ -987,6 +978,8 @@ if (replayYesterdayBtn) {
 
 if (celebrateBtn) {
   celebrateBtn.addEventListener("click", () => {
+    primeAudioContext();
+    playCelebrateSound(true);
     triggerCelebration();
     spawnFloatingDots(96, 1.5);
   });
@@ -996,15 +989,6 @@ if (breatheBtn) {
   breatheBtn.addEventListener("click", startBreathingTimer);
 }
 
-if (soundToggleBtn) {
-  updateSoundButtonLabel();
-  soundToggleBtn.addEventListener("click", () => {
-    soundEnabled = !soundEnabled;
-    localStorage.setItem(moodSoundKey, JSON.stringify(soundEnabled));
-    updateSoundButtonLabel();
-    if (soundEnabled) primeAudioContext();
-  });
-}
 if (themeToggleBtn) {
   updateThemeButtonLabel();
   themeToggleBtn.addEventListener("click", () => {
