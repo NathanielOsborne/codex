@@ -1,0 +1,65 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nathaniel Osborne | Developer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="bg-glow"></div>
+
+  <header class="hero">
+    <p class="kicker">Portfolio</p>
+    <h1>Nathaniel Osborne</h1>
+    <p class="subtitle">I build practical software and ship quickly.</p>
+    <div class="cta-row">
+      <a class="btn primary" id="githubProfile" href="https://github.com/NathanielOsborne" target="_blank" rel="noreferrer">GitHub Profile</a>
+      <a class="btn ghost" href="#repos">View Repositories</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="about" id="about">
+      <div class="section-head">
+        <h2>About</h2>
+      </div>
+      <p>
+        Developer focused on practical tooling, automation, and fast iteration. This page is deployed from the same repo and pulls repository data directly from GitHub.
+      </p>
+    </section>
+
+    <section id="repos" class="repos">
+      <div class="section-head">
+        <h2>My Repositories</h2>
+        <p>Loaded live from GitHub</p>
+      </div>
+      <div class="filters" role="group" aria-label="Repository filters">
+        <input id="repoSearch" type="search" placeholder="Search repos..." aria-label="Search repositories" />
+        <select id="languageFilter" aria-label="Filter by language">
+          <option value="all">All languages</option>
+        </select>
+      </div>
+      <div id="repoGrid" class="repo-grid" aria-live="polite"></div>
+      <p id="status" class="status">Loading repositories...</p>
+    </section>
+
+    <section class="contact" id="contact">
+      <div class="section-head">
+        <h2>Contact</h2>
+      </div>
+      <p>Open an issue or start a discussion on any repo to collaborate.</p>
+      <a class="btn primary" href="https://github.com/NathanielOsborne?tab=repositories" target="_blank" rel="noreferrer">Open Repositories</a>
+    </section>
+  </main>
+
+  <footer>
+    <small>Built with HTML, CSS, and JavaScript.</small>
+  </footer>
+
+  <script src="./script.js"></script>
+</body>
+</html>
