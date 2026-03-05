@@ -18,6 +18,8 @@ const moodButtons = [...document.querySelectorAll(".mood-btn")];
 const moodStatus = document.getElementById("moodStatus");
 const moodEmoji = document.getElementById("moodEmoji");
 const particleLayer = document.getElementById("particleLayer");
+const yearEl = document.getElementById("year");
+const revealEls = [...document.querySelectorAll(".reveal")];
 
 let allRepos = [];
 
@@ -83,13 +85,13 @@ function createParticles() {
   if (!particleLayer) return;
   particleLayer.innerHTML = "";
 
-  for (let i = 0; i < 26; i += 1) {
+  for (let i = 0; i < 34; i += 1) {
     const particle = document.createElement("span");
     particle.className = "particle";
 
     const size = `${(Math.random() * 7 + 3).toFixed(1)}px`;
     const x = `${(Math.random() * 100).toFixed(2)}vw`;
-    const duration = `${(Math.random() * 9 + 10).toFixed(1)}s`;
+    const duration = `${(Math.random() * 10 + 9).toFixed(1)}s`;
     const delay = `${(Math.random() * -18).toFixed(1)}s`;
 
     particle.style.setProperty("--size", size);
@@ -99,6 +101,25 @@ function createParticles() {
 
     particleLayer.appendChild(particle);
   }
+}
+
+function setupRevealAnimations() {
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("visible");
+          observer.unobserve(entry.target);
+        }
+      });
+    },
+    { threshold: 0.16 }
+  );
+
+  revealEls.forEach((element, index) => {
+    element.style.transitionDelay = `${Math.min(index * 55, 240)}ms`;
+    observer.observe(element);
+  });
 }
 
 function formatDate(isoDate) {
@@ -199,7 +220,9 @@ moodButtons.forEach((button) => {
 repoSearch.addEventListener("input", applyFilters);
 languageFilter.addEventListener("change", applyFilters);
 
+if (yearEl) yearEl.textContent = new Date().getFullYear();
 setMoodEmoji("");
 restoreMoodForToday();
 createParticles();
+setupRevealAnimations();
 loadRepos();

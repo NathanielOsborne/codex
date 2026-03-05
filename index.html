@@ -3,32 +3,57 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Nathaniel Osborne | Developer</title>
+  <title>Nathaniel Osborne | Build Fast, Ship Better</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
-  <div class="bg-glow"></div>
+  <div class="bg-grid" aria-hidden="true"></div>
+  <div class="bg-glow" aria-hidden="true"></div>
   <div id="particleLayer" class="particle-layer" aria-hidden="true"></div>
 
-  <header class="hero">
-    <p class="kicker">Portfolio</p>
-    <h1>Nathaniel Osborne</h1>
-    <p class="subtitle">I build practical software and ship quickly.</p>
-    <div class="cta-row">
-      <a class="btn primary" id="githubProfile" href="https://github.com/NathanielOsborne" target="_blank" rel="noreferrer">GitHub Profile</a>
-      <a class="btn ghost" href="#repos">View Repositories</a>
-    </div>
+  <header class="topbar reveal">
+    <a class="brand" href="#">Nathaniel Osborne</a>
+    <nav class="topnav">
+      <a href="#services">Services</a>
+      <a href="#repos">Work</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <a class="btn primary" href="https://github.com/NathanielOsborne" target="_blank" rel="noreferrer">Hire / Collab</a>
   </header>
 
   <main>
-    <section class="mood" id="mood">
+    <section class="hero reveal">
+      <p class="eyebrow">Modern Product Engineering</p>
+      <h1>Web experiences that feel sharp, convert fast, and keep users coming back.</h1>
+      <p class="lead">I build clean, high-performing digital products with a strong brand voice and practical engineering under the hood.</p>
+      <div class="cta-row">
+        <a class="btn primary" id="githubProfile" href="https://github.com/NathanielOsborne" target="_blank" rel="noreferrer">See My GitHub</a>
+        <a class="btn ghost" href="#repos">Explore Projects</a>
+      </div>
+      <div class="hero-metrics">
+        <article>
+          <h3>Fast</h3>
+          <p>Performance-first frontends designed for retention.</p>
+        </article>
+        <article>
+          <h3>Clear</h3>
+          <p>Messaging and layout tuned for attention and trust.</p>
+        </article>
+        <article>
+          <h3>Reliable</h3>
+          <p>Real engineering workflows, not template fluff.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="mood reveal" id="mood">
       <span id="moodEmoji" class="mood-emoji" aria-hidden="true">🙂</span>
       <div class="section-head">
         <h2>Daily Mood Vibe</h2>
-        <p>Pick once, vibe all day</p>
+        <p>Set the energy. Keep it all day.</p>
       </div>
       <div class="mood-options" role="group" aria-label="Choose your mood for today">
         <button class="mood-btn" data-mood="focused" type="button">Focused</button>
@@ -39,19 +64,30 @@
       <p id="moodStatus" class="status">No mood set for today yet.</p>
     </section>
 
-    <section class="about" id="about">
+    <section class="proof reveal" id="services">
       <div class="section-head">
-        <h2>About</h2>
+        <h2>Why People Work With Me</h2>
       </div>
-      <p>
-        Developer focused on practical tooling, automation, and fast iteration. This page is deployed from the same repo and pulls repository data directly from GitHub.
-      </p>
+      <div class="proof-grid">
+        <article class="proof-card">
+          <h3>Brand + Build</h3>
+          <p>Not just code. I shape messaging, layout, and interactions so the product feels valuable in seconds.</p>
+        </article>
+        <article class="proof-card">
+          <h3>Momentum</h3>
+          <p>I move quickly, communicate clearly, and ship improvements continuously instead of waiting for perfect.</p>
+        </article>
+        <article class="proof-card">
+          <h3>Business Impact</h3>
+          <p>Every change is meant to improve user confidence, conversion, and long-term product quality.</p>
+        </article>
+      </div>
     </section>
 
-    <section id="repos" class="repos">
+    <section id="repos" class="repos reveal">
       <div class="section-head">
-        <h2>My Repositories</h2>
-        <p>Loaded live from GitHub</p>
+        <h2>Featured Repositories</h2>
+        <p>Live from GitHub</p>
       </div>
       <div class="filters" role="group" aria-label="Repository filters">
         <input id="repoSearch" type="search" placeholder="Search repos..." aria-label="Search repositories" />
@@ -63,17 +99,20 @@
       <p id="status" class="status">Loading repositories...</p>
     </section>
 
-    <section class="contact" id="contact">
+    <section class="contact reveal" id="contact">
       <div class="section-head">
-        <h2>Contact</h2>
+        <h2>Let’s Build Something Worth Noticing</h2>
       </div>
-      <p>Open an issue or start a discussion on any repo to collaborate.</p>
-      <a class="btn primary" href="https://github.com/NathanielOsborne?tab=repositories" target="_blank" rel="noreferrer">Open Repositories</a>
+      <p>If you want a site that feels premium and performs like a product, we should work together.</p>
+      <div class="cta-row">
+        <a class="btn primary" href="https://github.com/NathanielOsborne?tab=repositories" target="_blank" rel="noreferrer">Open Repositories</a>
+        <a class="btn ghost" href="https://github.com/NathanielOsborne" target="_blank" rel="noreferrer">Message on GitHub</a>
+      </div>
     </section>
   </main>
 
   <footer>
-    <small>Built with HTML, CSS, and JavaScript.</small>
+    <small><span id="year"></span> Nathaniel Osborne. Built with intention.</small>
   </footer>
 
   <script src="./script.js"></script>
