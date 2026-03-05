@@ -52,7 +52,9 @@ const moodPlaylist = document.getElementById("moodPlaylist");
 const streakValue = document.getElementById("streakValue");
 const checkinValue = document.getElementById("checkinValue");
 const favoriteMood = document.getElementById("favoriteMood");
-const moodHistory = document.getElementById("moodHistory");
+const yesterdayMood = document.getElementById("yesterdayMood");
+const yesterdayMoodNote = document.getElementById("yesterdayMoodNote");
+const replayYesterdayBtn = document.getElementById("replayYesterdayBtn");
 
 const randomMoodBtn = document.getElementById("randomMoodBtn");
 const celebrateBtn = document.getElementById("celebrateBtn");
@@ -168,7 +170,6 @@ function ensureAudioContext() {
 }
 
 function primeAudioContext() {
-  if (!soundEnabled) return;
   const ctx = ensureAudioContext();
   if (!ctx) return;
 
@@ -219,8 +220,8 @@ function playMoodSound(mood) {
   });
 }
 
-function playCelebrateSound() {
-  if (!soundEnabled) return;
+function playCelebrateSound(force = false) {
+  if (!force && !soundEnabled) return;
   const ctx = ensureAudioContext();
   if (!ctx) return;
 
@@ -279,7 +280,7 @@ function setMoodContent(mood) {
     moodQuote.textContent = "Pick a mood to unlock your message.";
     moodChallenge.textContent = "";
     moodPlaylist.href = "https://open.spotify.com";
-    moodPlaylist.textContent = "Open Playlist";
+    moodPlaylist.setAttribute("aria-label", "Open Spotify playlist");
     return;
   }
 
@@ -287,7 +288,7 @@ function setMoodContent(mood) {
   moodQuote.textContent = content.quote;
   moodChallenge.textContent = content.challenge;
   moodPlaylist.href = content.playlist;
-  moodPlaylist.textContent = `Open ${mood.charAt(0).toUpperCase() + mood.slice(1)} Playlist`;
+  moodPlaylist.setAttribute("aria-label", `Open ${mood.charAt(0).toUpperCase() + mood.slice(1)} Spotify playlist`);
 }
 
 function applyMood(mood) {
@@ -309,7 +310,7 @@ function saveTodayMood(mood) {
   localStorage.setItem(moodHistoryKey, JSON.stringify(history));
   localStorage.setItem(moodStorageKey, JSON.stringify({ date: today, mood }));
   updateMoodStats();
-  renderMoodHistory();
+  renderYesterdayMood();
 }
 
 function computeStreak(historyObj) {
@@ -357,26 +358,36 @@ function updateMoodStats() {
   favoriteMood.textContent = countByMood[topMood] ? `${moodContent[topMood].emoji} ${topMood}` : "-";
 }
 
-function renderMoodHistory() {
-  if (!moodHistory) return;
+function renderYesterdayMood() {
+  if (!yesterdayMood || !yesterdayMoodNote) return;
 
   const history = parseJsonFromStorage(moodHistoryKey, {});
-  const dates = Object.keys(history).sort().reverse().slice(0, 7);
-  moodHistory.innerHTML = "";
+  const date = new Date();
+  date.setDate(date.getDate() - 1);
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, "0");
+  const dd = String(date.getDate()).padStart(2, "0");
+  const yesterdayKey = `${yyyy}-${mm}-${dd}`;
+  const mood = history[yesterdayKey];
 
-  if (!dates.length) {
-    const item = document.createElement("li");
-    item.textContent = "No history yet.";
-    moodHistory.appendChild(item);
+  if (!mood || !moodContent[mood]) {
+    yesterdayMood.textContent = "No check-in yet.";
+    yesterdayMoodNote.textContent = "Pick a mood today to unlock the throwback.";
+    if (replayYesterdayBtn) replayYesterdayBtn.disabled = true;
     return;
   }
 
-  dates.forEach((date) => {
-    const mood = history[date];
-    const item = document.createElement("li");
-    item.textContent = `${date}: ${moodContent[mood]?.emoji || "🙂"} ${mood}`;
-    moodHistory.appendChild(item);
-  });
+  const moodTitle = `${moodContent[mood].emoji} ${mood.charAt(0).toUpperCase() + mood.slice(1)}`;
+  const throwbacks = [
+    "Yesterday had great energy.",
+    "That vibe looked good on you.",
+    "Throwback unlocked.",
+    "Replay it if it still fits."
+  ];
+
+  yesterdayMood.textContent = moodTitle;
+  yesterdayMoodNote.textContent = throwbacks[Math.floor(Math.random() * throwbacks.length)];
+  if (replayYesterdayBtn) replayYesterdayBtn.disabled = false;
 }
 
 function restoreMoodForToday() {
@@ -781,7 +792,7 @@ function startTapSprint(activeMood) {
         localStorage.setItem(vibeTapHighScoreKey, JSON.stringify(tapBest));
         vibeTapHighScore.textContent = `High score: ${tapBest} taps`;
         vibeTapStatus.textContent = `New high score: ${tapBest}!`;
-        playCelebrateSound();
+        playCelebrateSound(true);
         triggerCelebration();
 
         oracleDrawsLeft += 1;
@@ -937,6 +948,21 @@ if (randomMoodBtn) {
   });
 }
 
+if (replayYesterdayBtn) {
+  replayYesterdayBtn.addEventListener("click", () => {
+    const history = parseJsonFromStorage(moodHistoryKey, {});
+    const date = new Date();
+    date.setDate(date.getDate() - 1);
+    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+    const mood = history[key];
+    if (!mood || !moodContent[mood]) return;
+
+    applyMood(mood);
+    triggerCelebration();
+    if (moodStatus) moodStatus.textContent = `Replaying yesterday: ${mood}.`;
+  });
+}
+
 if (celebrateBtn) {
   celebrateBtn.addEventListener("click", () => {
     triggerCelebration();
@@ -971,7 +997,7 @@ if (yearEl) {
 
 restoreMoodForToday();
 updateMoodStats();
-renderMoodHistory();
+renderYesterdayMood();
 setupJournal();
 createParticles();
 setupRevealAnimations();

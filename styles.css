@@ -614,6 +614,38 @@ body.celebration .particle-layer {
 
 
 
+.spotify-card {
+  display: grid;
+  gap: 0.7rem;
+  justify-items: start;
+}
+
+.spotify-logo-link {
+  display: inline-flex;
+  width: 88px;
+  height: 88px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.72);
+  align-items: center;
+  justify-content: center;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+}
+
+.spotify-logo-link:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 12px 22px rgba(0, 0, 0, 0.16);
+}
+
+.spotify-logo-link svg {
+  width: 64px;
+  height: 64px;
+}
+
+.history-card .btn {
+  margin-top: 0.55rem;
+}
 .oracle-text {
   min-height: 2.7em;
 }
