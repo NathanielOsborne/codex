@@ -665,36 +665,37 @@ body.celebration .particle-layer {
 
 
 .spotify-card {
+  border: none;
+  background: transparent;
+  box-shadow: none;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.55rem;
-  min-height: 98px;
-  max-width: 124px;
-  justify-self: center;
+  padding: 0.15rem;
+  min-height: 118px;
 }
 
 .spotify-logo-link {
   display: inline-flex;
-  width: 62px;
-  height: 62px;
+  width: 96px;
+  height: 96px;
   border-radius: 999px;
-  border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.72);
+  border: none;
+  background: transparent;
   align-items: center;
   justify-content: center;
-  transition: transform 180ms ease, box-shadow 180ms ease;
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+  transition: transform 180ms ease;
+  box-shadow: none;
 }
 
 .spotify-logo-link:hover {
-  transform: translateY(-2px) scale(1.03);
-  box-shadow: 0 12px 22px rgba(0, 0, 0, 0.16);
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: none;
 }
 
 .spotify-logo-link svg {
-  width: 42px;
-  height: 42px;
+  width: 96px;
+  height: 96px;
 }
 
 .history-card .btn {
@@ -737,3 +738,4 @@ body[data-theme="dark"] .btn.primary,
 body[data-theme="dark"] .mood-btn.active {
   color: #000000;
 }
+
