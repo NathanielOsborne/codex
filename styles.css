@@ -618,6 +618,14 @@ body.celebration .particle-layer {
   min-height: 2.7em;
 }
 
+.oracle-hit {
+  color: #35f3a8;
+}
+
+.oracle-miss {
+  color: #9db0d6;
+}
+
 .tap-button {
   min-width: 90px;
   font-size: 1rem;
@@ -631,3 +639,4 @@ body.celebration .particle-layer {
 .vibe-zone .big-number {
   margin: 0.35rem 0;
 }
+

@@ -6,6 +6,7 @@ const moodHistoryKey = "dailyMoodHistory";
 const moodNoteKey = "dailyMoodJournal";
 const moodSoundKey = "dailyMoodSoundEnabled";
 const vibeTapHighScoreKey = "vibeTapHighScore";
+const oracleCollectionKey = "moodOracleCollectionV2";
 
 const validMoods = ["focused", "chill", "energetic", "calm"];
 const moodContent = {
@@ -76,6 +77,9 @@ const vibeEnergyStatus = document.getElementById("vibeEnergyStatus");
 const vibeMissionList = document.getElementById("vibeMissionList");
 const vibeOracleBtn = document.getElementById("vibeOracleBtn");
 const vibeOracleText = document.getElementById("vibeOracleText");
+const vibeOracleProgress = document.getElementById("vibeOracleProgress");
+const vibeOracleMission = document.getElementById("vibeOracleMission");
+const vibeOracleMissionBtn = document.getElementById("vibeOracleMissionBtn");
 const vibeTapStartBtn = document.getElementById("vibeTapStartBtn");
 const vibeTapBtn = document.getElementById("vibeTapBtn");
 const vibeTapStatus = document.getElementById("vibeTapStatus");
@@ -94,14 +98,23 @@ let tapTimer = null;
 let tapCount = 0;
 let tapSecondsLeft = 10;
 let tapBest = Number(parseJsonFromStorage(vibeTapHighScoreKey, 0)) || 0;
-let oracleDeck = [];
-let oracleIndex = 0;
+let oracleDrawPile = [];
+let oracleCollected = new Set();
+let oracleDrawsLeft = 1;
+let oracleMissionActive = "";
 
-const oracleDeckThemes = {
-  focused: ["Focus", "Clarity", "Build", "Ship", "Systems"],
-  chill: ["Flow", "Ease", "Glow", "Reset", "Balance"],
-  energetic: ["Spark", "Action", "Momentum", "Launch", "Charge"],
-  calm: ["Stillness", "Ground", "Breath", "Drift", "Center"]
+const oracleFirstWords = [
+  "Neon", "Solar", "Lunar", "Velvet", "Golden", "Silver", "Rapid", "Quiet", "Wild", "Pure",
+  "Hidden", "Open", "Nova", "Pixel", "Echo", "Glide", "Steady", "Brave", "Fresh", "Prime"
+];
+
+const oracleSecondWords = ["Spark", "Wave", "Bloom", "Shift", "Pulse", "Orbit", "Quest", "Flow"];
+
+const oracleSideMissions = {
+  focused: ["Clear one tiny task right now.", "Do a 2-minute focus sprint.", "Close three distracting tabs."],
+  chill: ["Take five slow breaths.", "Sip water and stretch once.", "Look away from screen for 30 seconds."],
+  energetic: ["Do 15 quick taps on your desk.", "Stand up and move for 20 seconds.", "Start a 60-second mini sprint."],
+  calm: ["Relax your shoulders and jaw.", "Breathe in 4, out 6, three times.", "Write one grateful word."]
 };
 
 if (githubProfileLink) {
@@ -154,6 +167,28 @@ function ensureAudioContext() {
   return audioContext;
 }
 
+function primeAudioContext() {
+  if (!soundEnabled) return;
+  const ctx = ensureAudioContext();
+  if (!ctx) return;
+
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.type = "sine";
+  osc.frequency.value = 440;
+
+  const t0 = ctx.currentTime + 0.01;
+  const t1 = t0 + 0.03;
+  gain.gain.setValueAtTime(0.0001, t0);
+  gain.gain.exponentialRampToValueAtTime(0.0012, t0 + 0.01);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t1);
+
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.start(t0);
+  osc.stop(t1 + 0.01);
+}
+
 function playMoodSound(mood) {
   if (!soundEnabled) return;
   const notes = moodSoundPatterns[mood];
@@ -199,10 +234,10 @@ function playCelebrateSound() {
     osc.frequency.value = freq;
 
     const t0 = now + i * 0.05;
-    const t1 = t0 + 0.35;
+    const t1 = t0 + 0.38;
 
     gain.gain.setValueAtTime(0.0001, t0);
-    gain.gain.exponentialRampToValueAtTime(0.11, t0 + 0.05);
+    gain.gain.exponentialRampToValueAtTime(0.15, t0 + 0.05);
     gain.gain.exponentialRampToValueAtTime(0.0001, t1);
 
     osc.connect(gain);
@@ -210,6 +245,18 @@ function playCelebrateSound() {
     osc.start(t0);
     osc.stop(t1 + 0.04);
   });
+
+  const bass = ctx.createOscillator();
+  const bassGain = ctx.createGain();
+  bass.type = "sine";
+  bass.frequency.value = 130.81;
+  bassGain.gain.setValueAtTime(0.0001, now);
+  bassGain.gain.exponentialRampToValueAtTime(0.12, now + 0.04);
+  bassGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.32);
+  bass.connect(bassGain);
+  bassGain.connect(ctx.destination);
+  bass.start(now);
+  bass.stop(now + 0.36);
 }
 
 function updateSoundButtonLabel() {
@@ -335,7 +382,7 @@ function renderMoodHistory() {
 function restoreMoodForToday() {
   const saved = parseJsonFromStorage(moodStorageKey, null);
   if (saved && saved.date === todayString() && validMoods.includes(saved.mood)) {
-    applyMood(saved.mood, { playSound: false });
+    applyMood(saved.mood);
   } else {
     setMoodContent("");
   }
@@ -572,35 +619,136 @@ async function loadRepos() {
   }
 }
 
-function buildOracleDeck(activeMood, size = 160) {
-  const deck = [];
-  const moodLabel = activeMood.charAt(0).toUpperCase() + activeMood.slice(1);
-  const themes = oracleDeckThemes[activeMood] || oracleDeckThemes.chill;
-
-  for (let i = 1; i <= size; i += 1) {
-    const slot = ((i - 1) % 8) + 1;
-    const wave = Math.floor((i - 1) / 8) + 1;
-    const theme = themes[(i - 1) % themes.length];
-    deck.push(`Slide ${i} - ${moodLabel} ${theme} - Wave ${wave} - Move ${slot}`);
-  }
-
-  for (let i = deck.length - 1; i > 0; i -= 1) {
+function shuffleArray(items) {
+  const arr = [...items];
+  for (let i = arr.length - 1; i > 0; i -= 1) {
     const j = Math.floor(Math.random() * (i + 1));
-    [deck[i], deck[j]] = [deck[j], deck[i]];
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function buildOracleCards() {
+  const cards = [];
+  const prompts = [
+    "Take one bold action in the next minute.",
+    "Send one message you have been postponing.",
+    "Clear one tiny task right now.",
+    "Do a 20-second movement burst.",
+    "Write one clear next step.",
+    "Remove one distraction from your view.",
+    "Start a 2-minute focus timer.",
+    "Celebrate one small win."
+  ];
+
+  let id = 1;
+  for (let i = 0; i < oracleSecondWords.length; i += 1) {
+    for (let j = 0; j < oracleFirstWords.length; j += 1) {
+      cards.push({
+        id,
+        title: `${oracleFirstWords[j]} ${oracleSecondWords[i]}`,
+        prompt: prompts[i]
+      });
+      id += 1;
+    }
   }
 
-  return deck;
+  return cards;
+}
+
+const oracleCards = buildOracleCards();
+const oracleCardById = new Map(oracleCards.map((card) => [card.id, card]));
+
+function pickOracleMission(activeMood) {
+  const pool = oracleSideMissions[activeMood] || oracleSideMissions.chill;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function saveOracleState() {
+  const state = {
+    collected: [...oracleCollected],
+    drawsLeft: oracleDrawsLeft,
+    pile: oracleDrawPile,
+    mission: oracleMissionActive
+  };
+  localStorage.setItem(oracleCollectionKey, JSON.stringify(state));
+}
+
+function loadOracleState(activeMood) {
+  const state = parseJsonFromStorage(oracleCollectionKey, null);
+  const validIds = new Set(oracleCards.map((card) => card.id));
+
+  if (state) {
+    oracleCollected = new Set((state.collected || []).filter((id) => validIds.has(id)));
+    oracleDrawsLeft = Number.isFinite(state.drawsLeft) ? Math.max(0, Math.floor(state.drawsLeft)) : 1;
+    oracleDrawPile = (state.pile || []).filter((id) => validIds.has(id));
+    oracleMissionActive = typeof state.mission === "string" ? state.mission : "";
+  }
+
+  if (!oracleDrawPile.length) {
+    oracleDrawPile = shuffleArray(oracleCards.map((card) => card.id));
+  }
+
+  if (oracleDrawsLeft < 1 && !oracleMissionActive) {
+    oracleMissionActive = pickOracleMission(activeMood);
+  }
+
+  saveOracleState();
+}
+
+function refreshOracleUI() {
+  if (vibeOracleProgress) {
+    vibeOracleProgress.textContent = `Collection: ${oracleCollected.size}/${oracleCards.length} | Draws left: ${oracleDrawsLeft}`;
+  }
+
+  if (vibeOracleMission) {
+    vibeOracleMission.textContent = oracleMissionActive
+      ? `Side mission: ${oracleMissionActive}`
+      : "No mission active.";
+  }
+
+  if (vibeOracleMissionBtn) {
+    vibeOracleMissionBtn.disabled = !oracleMissionActive;
+  }
 }
 
 function drawOracleCard(activeMood) {
-  if (!oracleDeck.length || oracleIndex >= oracleDeck.length) {
-    oracleDeck = buildOracleDeck(activeMood, 160);
-    oracleIndex = 0;
+  if (oracleDrawsLeft < 1) {
+    if (!oracleMissionActive) {
+      oracleMissionActive = pickOracleMission(activeMood);
+      saveOracleState();
+    }
+    refreshOracleUI();
+    return null;
   }
 
-  const card = oracleDeck[oracleIndex];
-  oracleIndex += 1;
-  return `${card} (${oracleIndex}/${oracleDeck.length})`;
+  if (!oracleDrawPile.length) {
+    oracleDrawPile = shuffleArray(oracleCards.map((card) => card.id));
+  }
+
+  const cardId = oracleDrawPile.pop();
+  const card = oracleCardById.get(cardId);
+  const isNew = !oracleCollected.has(cardId);
+  if (isNew) oracleCollected.add(cardId);
+
+  oracleDrawsLeft -= 1;
+  if (oracleDrawsLeft < 1) {
+    oracleMissionActive = pickOracleMission(activeMood);
+  }
+
+  saveOracleState();
+  refreshOracleUI();
+  return { card, isNew };
+}
+
+function completeOracleMission() {
+  if (!oracleMissionActive) return false;
+
+  oracleMissionActive = "";
+  oracleDrawsLeft += 1;
+  saveOracleState();
+  refreshOracleUI();
+  return true;
 }
 
 function startTapSprint(activeMood) {
@@ -627,6 +775,7 @@ function startTapSprint(activeMood) {
       vibeTapBtn.disabled = true;
       vibeTapStartBtn.disabled = false;
 
+      let unlockedBonusDraw = false;
       if (tapCount > tapBest) {
         tapBest = tapCount;
         localStorage.setItem(vibeTapHighScoreKey, JSON.stringify(tapBest));
@@ -634,12 +783,19 @@ function startTapSprint(activeMood) {
         vibeTapStatus.textContent = `New high score: ${tapBest}!`;
         playCelebrateSound();
         triggerCelebration();
+
+        oracleDrawsLeft += 1;
+        unlockedBonusDraw = true;
+        saveOracleState();
+        refreshOracleUI();
       } else {
         vibeTapStatus.textContent = `Run complete: ${tapCount} taps.`;
       }
 
       if (vibeActionStatus) {
-        vibeActionStatus.textContent = `Tap sprint done for ${activeMood}.`;
+        vibeActionStatus.textContent = unlockedBonusDraw
+          ? `Tap sprint done for ${activeMood}. Bonus draw unlocked.`
+          : `Tap sprint done for ${activeMood}.`;
       }
       return;
     }
@@ -652,6 +808,7 @@ function initVibePage() {
   if (!vibeTitle || !vibeLead || !vibeMoodBadge || !vibePrompt || !vibeMicroChallenge || !vibeMissionList) return;
 
   let activeMood = getActiveMood();
+  loadOracleState(activeMood);
 
   const renderVibeMood = () => {
     applyMood(activeMood);
@@ -668,10 +825,17 @@ function initVibePage() {
       vibeMissionList.appendChild(li);
     });
 
-    oracleDeck = buildOracleDeck(activeMood, 160);
-    oracleIndex = 0;
-    if (vibeOracleText) vibeOracleText.textContent = "Draw a card from the 160-slide deck.";
+    if (vibeOracleText) {
+      vibeOracleText.classList.remove("oracle-hit", "oracle-miss");
+      vibeOracleText.textContent = "Build your 160-card collection.";
+    }
+
     if (vibeTapHighScore) vibeTapHighScore.textContent = `High score: ${tapBest} taps`;
+    if (oracleDrawsLeft < 1 && !oracleMissionActive) {
+      oracleMissionActive = pickOracleMission(activeMood);
+      saveOracleState();
+    }
+    refreshOracleUI();
   };
 
   renderVibeMood();
@@ -703,8 +867,33 @@ function initVibePage() {
 
   if (vibeOracleBtn && vibeOracleText) {
     vibeOracleBtn.addEventListener("click", () => {
-      vibeOracleText.textContent = drawOracleCard(activeMood);
-      if (vibeActionStatus) vibeActionStatus.textContent = "Card drawn.";
+      const result = drawOracleCard(activeMood);
+      if (!result) {
+        vibeOracleText.classList.remove("oracle-hit");
+        vibeOracleText.classList.add("oracle-miss");
+        vibeOracleText.textContent = "No draws left. Complete the side mission to unlock your next card.";
+        if (vibeActionStatus) vibeActionStatus.textContent = "Mission required for next draw.";
+        return;
+      }
+
+      const { card, isNew } = result;
+      vibeOracleText.classList.toggle("oracle-hit", isNew);
+      vibeOracleText.classList.toggle("oracle-miss", !isNew);
+      vibeOracleText.textContent = `Card #${card.id}: ${card.title}. ${card.prompt}`;
+      if (vibeActionStatus) {
+        vibeActionStatus.textContent = isNew ? "New card collected." : "Duplicate card pulled.";
+      }
+    });
+  }
+
+  if (vibeOracleMissionBtn) {
+    vibeOracleMissionBtn.addEventListener("click", () => {
+      const unlocked = completeOracleMission();
+      if (!unlocked) {
+        if (vibeActionStatus) vibeActionStatus.textContent = "No mission active.";
+        return;
+      }
+      if (vibeActionStatus) vibeActionStatus.textContent = "Mission complete. +1 draw unlocked.";
     });
   }
 
@@ -724,7 +913,10 @@ function initVibePage() {
   }
 
   if (vibeTapStartBtn) {
-    vibeTapStartBtn.addEventListener("click", () => startTapSprint(activeMood));
+    vibeTapStartBtn.addEventListener("click", () => {
+      primeAudioContext();
+      startTapSprint(activeMood);
+    });
   }
 }
 
@@ -762,10 +954,9 @@ if (soundToggleBtn) {
     soundEnabled = !soundEnabled;
     localStorage.setItem(moodSoundKey, JSON.stringify(soundEnabled));
     updateSoundButtonLabel();
-
+    if (soundEnabled) primeAudioContext();
   });
 }
-
 if (repoSearch) {
   repoSearch.addEventListener("input", applyFilters);
 }
