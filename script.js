@@ -2,6 +2,12 @@
 const apiUrl = `https://api.github.com/users/${githubUsername}/repos?sort=updated&per_page=100`;
 const moodStorageKey = "dailyMoodVibe";
 const validMoods = ["focused", "chill", "energetic", "calm"];
+const moodEmojiMap = {
+  focused: "🧠",
+  chill: "😎",
+  energetic: "⚡",
+  calm: "🌿"
+};
 
 const repoGrid = document.getElementById("repoGrid");
 const statusEl = document.getElementById("status");
@@ -10,6 +16,8 @@ const repoSearch = document.getElementById("repoSearch");
 const languageFilter = document.getElementById("languageFilter");
 const moodButtons = [...document.querySelectorAll(".mood-btn")];
 const moodStatus = document.getElementById("moodStatus");
+const moodEmoji = document.getElementById("moodEmoji");
+const particleLayer = document.getElementById("particleLayer");
 
 let allRepos = [];
 
@@ -33,10 +41,15 @@ function setActiveMoodButton(selectedMood) {
   });
 }
 
+function setMoodEmoji(mood) {
+  moodEmoji.textContent = moodEmojiMap[mood] || "🙂";
+}
+
 function applyMood(mood) {
   if (!validMoods.includes(mood)) return;
   document.body.dataset.mood = mood;
   setActiveMoodButton(mood);
+  setMoodEmoji(mood);
   moodStatus.textContent = `${titleMood(mood)} vibe is active for today.`;
 }
 
@@ -63,6 +76,28 @@ function restoreMoodForToday() {
     }
   } catch {
     localStorage.removeItem(moodStorageKey);
+  }
+}
+
+function createParticles() {
+  if (!particleLayer) return;
+  particleLayer.innerHTML = "";
+
+  for (let i = 0; i < 26; i += 1) {
+    const particle = document.createElement("span");
+    particle.className = "particle";
+
+    const size = `${(Math.random() * 7 + 3).toFixed(1)}px`;
+    const x = `${(Math.random() * 100).toFixed(2)}vw`;
+    const duration = `${(Math.random() * 9 + 10).toFixed(1)}s`;
+    const delay = `${(Math.random() * -18).toFixed(1)}s`;
+
+    particle.style.setProperty("--size", size);
+    particle.style.setProperty("--x", x);
+    particle.style.setProperty("--duration", duration);
+    particle.style.animationDelay = delay;
+
+    particleLayer.appendChild(particle);
   }
 }
 
@@ -164,5 +199,7 @@ moodButtons.forEach((button) => {
 repoSearch.addEventListener("input", applyFilters);
 languageFilter.addEventListener("change", applyFilters);
 
+setMoodEmoji("");
 restoreMoodForToday();
+createParticles();
 loadRepos();
