@@ -1,15 +1,70 @@
 ﻿const githubUsername = "NathanielOsborne";
 const apiUrl = `https://api.github.com/users/${githubUsername}/repos?sort=updated&per_page=100`;
+const moodStorageKey = "dailyMoodVibe";
+const validMoods = ["focused", "chill", "energetic", "calm"];
 
 const repoGrid = document.getElementById("repoGrid");
 const statusEl = document.getElementById("status");
 const githubProfileLink = document.getElementById("githubProfile");
 const repoSearch = document.getElementById("repoSearch");
 const languageFilter = document.getElementById("languageFilter");
+const moodButtons = [...document.querySelectorAll(".mood-btn")];
+const moodStatus = document.getElementById("moodStatus");
 
 let allRepos = [];
 
 githubProfileLink.href = `https://github.com/${githubUsername}`;
+
+function todayString() {
+  const now = new Date();
+  const yyyy = now.getFullYear();
+  const mm = String(now.getMonth() + 1).padStart(2, "0");
+  const dd = String(now.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+function titleMood(mood) {
+  return mood.charAt(0).toUpperCase() + mood.slice(1);
+}
+
+function setActiveMoodButton(selectedMood) {
+  moodButtons.forEach((button) => {
+    button.classList.toggle("active", button.dataset.mood === selectedMood);
+  });
+}
+
+function applyMood(mood) {
+  if (!validMoods.includes(mood)) return;
+  document.body.dataset.mood = mood;
+  setActiveMoodButton(mood);
+  moodStatus.textContent = `${titleMood(mood)} vibe is active for today.`;
+}
+
+function persistMoodForToday(mood) {
+  localStorage.setItem(
+    moodStorageKey,
+    JSON.stringify({
+      date: todayString(),
+      mood
+    })
+  );
+}
+
+function restoreMoodForToday() {
+  const raw = localStorage.getItem(moodStorageKey);
+  if (!raw) return;
+
+  try {
+    const saved = JSON.parse(raw);
+    if (saved.date === todayString() && validMoods.includes(saved.mood)) {
+      applyMood(saved.mood);
+    } else {
+      localStorage.removeItem(moodStorageKey);
+    }
+  } catch {
+    localStorage.removeItem(moodStorageKey);
+  }
+}
 
 function formatDate(isoDate) {
   const date = new Date(isoDate);
@@ -98,7 +153,16 @@ async function loadRepos() {
   }
 }
 
+moodButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    const mood = button.dataset.mood;
+    applyMood(mood);
+    persistMoodForToday(mood);
+  });
+});
+
 repoSearch.addEventListener("input", applyFilters);
 languageFilter.addEventListener("change", applyFilters);
 
+restoreMoodForToday();
 loadRepos();
