@@ -212,10 +212,13 @@ footer {
 }
 
 .brand {
-  font-family: "Fraunces", serif;
+  font-family: "Space Grotesk", sans-serif;
   text-decoration: none;
-  color: var(--text);
-  font-size: 1.1rem;
+  color: #335bff;
+  font-size: 1.95rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
 .topnav {
@@ -738,4 +741,5 @@ body[data-theme="dark"] .btn.primary,
 body[data-theme="dark"] .mood-btn.active {
   color: #000000;
 }
+
 
