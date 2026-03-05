@@ -303,23 +303,42 @@ function triggerCelebration() {
   const moodSection = document.getElementById("mood");
   if (!moodSection) return;
 
+  document.body.classList.add("celebration");
+  setTimeout(() => document.body.classList.remove("celebration"), 760);
+
   const moodRect = moodSection.getBoundingClientRect();
   const centerX = moodRect.left + window.scrollX + moodRect.width / 2;
   const centerY = moodRect.top + window.scrollY + 90;
 
-  for (let i = 0; i < 28; i += 1) {
+  for (let i = 0; i < 44; i += 1) {
     const spark = document.createElement("span");
     spark.className = "spark";
     spark.style.left = `${centerX}px`;
     spark.style.top = `${centerY}px`;
 
-    const angle = (Math.PI * 2 * i) / 28;
-    const distance = 30 + Math.random() * 90;
+    const angle = (Math.PI * 2 * i) / 44;
+    const distance = 40 + Math.random() * 140;
+    spark.style.width = `${6 + Math.random() * 8}px`;
+    spark.style.height = spark.style.width;
     spark.style.setProperty("--dx", `${Math.cos(angle) * distance}px`);
     spark.style.setProperty("--dy", `${Math.sin(angle) * distance}px`);
 
     document.body.appendChild(spark);
-    setTimeout(() => spark.remove(), 800);
+    setTimeout(() => spark.remove(), 820);
+  }
+
+  for (let i = 0; i < 14; i += 1) {
+    const sparkle = document.createElement("span");
+    sparkle.className = "spark";
+    sparkle.style.left = `${(Math.random() * window.innerWidth).toFixed(1)}px`;
+    sparkle.style.top = `${(Math.random() * window.innerHeight).toFixed(1)}px`;
+    sparkle.style.width = "10px";
+    sparkle.style.height = "10px";
+    sparkle.style.setProperty("--dx", `${(Math.random() - 0.5) * 120}px`);
+    sparkle.style.setProperty("--dy", `${(Math.random() - 0.5) * 120}px`);
+
+    document.body.appendChild(sparkle);
+    setTimeout(() => sparkle.remove(), 820);
   }
 }
 
@@ -535,3 +554,4 @@ setupJournal();
 createParticles();
 setupRevealAnimations();
 loadRepos();
+
