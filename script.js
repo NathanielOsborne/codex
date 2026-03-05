@@ -5,33 +5,14 @@ const moodStorageKey = "dailyMoodVibe";
 const moodHistoryKey = "dailyMoodHistory";
 const moodNoteKey = "dailyMoodJournal";
 const moodSoundKey = "dailyMoodSoundEnabled";
+const vibeTapHighScoreKey = "vibeTapHighScore";
 
 const validMoods = ["focused", "chill", "energetic", "calm"];
 const moodContent = {
-  focused: {
-    emoji: "🧠",
-    quote: "One focused block beats scattered effort.",
-    challenge: "Do one 25-min deep-work sprint.",
-    playlist: "https://open.spotify.com/search/deep%20focus"
-  },
-  chill: {
-    emoji: "😎",
-    quote: "Slow down and let ideas breathe.",
-    challenge: "Take a phone-free 10-min walk.",
-    playlist: "https://open.spotify.com/search/chill%20vibes"
-  },
-  energetic: {
-    emoji: "⚡",
-    quote: "Ride the momentum while it is here.",
-    challenge: "Ship one small thing in an hour.",
-    playlist: "https://open.spotify.com/search/high%20energy"
-  },
-  calm: {
-    emoji: "🌿",
-    quote: "Calm mind, clear decisions.",
-    challenge: "Take five slow breaths now.",
-    playlist: "https://open.spotify.com/search/calm%20focus"
-  }
+  focused: { emoji: "🧠", quote: "One focused block beats scattered effort.", challenge: "Do one 25-min deep-work sprint.", playlist: "https://open.spotify.com/search/deep%20focus" },
+  chill: { emoji: "😎", quote: "Slow down and let ideas breathe.", challenge: "Take a phone-free 10-min walk.", playlist: "https://open.spotify.com/search/chill%20vibes" },
+  energetic: { emoji: "⚡", quote: "Ride the momentum while it is here.", challenge: "Ship one small thing in an hour.", playlist: "https://open.spotify.com/search/high%20energy" },
+  calm: { emoji: "🌿", quote: "Calm mind, clear decisions.", challenge: "Take five slow breaths now.", playlist: "https://open.spotify.com/search/calm%20focus" }
 };
 
 const vibeChallenges = {
@@ -46,13 +27,6 @@ const vibeMissions = {
   chill: ["1. Slow breathing", "2. Walk break", "3. Gentle restart"],
   energetic: ["1. Quick warm-up", "2. Sprint task", "3. Celebrate win"],
   calm: ["1. Quiet minute", "2. Clear top priority", "3. Move steadily"]
-};
-
-const vibeOracle = {
-  focused: ["Lock one task and finish it.", "Delete one distraction.", "Ship before editing."],
-  chill: ["Stretch your shoulders now.", "Sip water slowly.", "Take a gentle 2-min pause."],
-  energetic: ["Start a 10-min sprint.", "Move fast and imperfect.", "Publish a tiny win."],
-  calm: ["Breathe 4 in, 6 out.", "Slow your pace by 20%.", "Choose clarity over speed."]
 };
 
 const moodSoundPatterns = {
@@ -95,7 +69,6 @@ const vibePrompt = document.getElementById("vibePrompt");
 const vibeMicroChallenge = document.getElementById("vibeMicroChallenge");
 const vibeChallengeBtn = document.getElementById("vibeChallengeBtn");
 const vibeBurstBtn = document.getElementById("vibeBurstBtn");
-const vibeSoundBtn = document.getElementById("vibeSoundBtn");
 const vibeShuffleMoodBtn = document.getElementById("vibeShuffleMoodBtn");
 const vibeActionStatus = document.getElementById("vibeActionStatus");
 const vibeEnergy = document.getElementById("vibeEnergy");
@@ -107,6 +80,7 @@ const vibeTapStartBtn = document.getElementById("vibeTapStartBtn");
 const vibeTapBtn = document.getElementById("vibeTapBtn");
 const vibeTapStatus = document.getElementById("vibeTapStatus");
 const vibeTapScore = document.getElementById("vibeTapScore");
+const vibeTapHighScore = document.getElementById("vibeTapHighScore");
 
 const particleLayer = document.getElementById("particleLayer");
 const yearEl = document.getElementById("year");
@@ -119,6 +93,16 @@ let soundEnabled = parseJsonFromStorage(moodSoundKey, true) !== false;
 let tapTimer = null;
 let tapCount = 0;
 let tapSecondsLeft = 10;
+let tapBest = Number(parseJsonFromStorage(vibeTapHighScoreKey, 0)) || 0;
+let oracleDeck = [];
+let oracleIndex = 0;
+
+const oracleDeckThemes = {
+  focused: ["Focus", "Clarity", "Build", "Ship", "Systems"],
+  chill: ["Flow", "Ease", "Glow", "Reset", "Balance"],
+  energetic: ["Spark", "Action", "Momentum", "Launch", "Charge"],
+  calm: ["Stillness", "Ground", "Breath", "Drift", "Center"]
+};
 
 if (githubProfileLink) {
   githubProfileLink.href = `https://github.com/${githubUsername}`;
@@ -226,32 +210,6 @@ function playCelebrateSound() {
     osc.start(t0);
     osc.stop(t1 + 0.04);
   });
-
-  const bass = ctx.createOscillator();
-  const bassGain = ctx.createGain();
-  bass.type = "sine";
-  bass.frequency.value = 110;
-  bassGain.gain.setValueAtTime(0.0001, now);
-  bassGain.gain.exponentialRampToValueAtTime(0.09, now + 0.04);
-  bassGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.28);
-  bass.connect(bassGain);
-  bassGain.connect(ctx.destination);
-  bass.start(now);
-  bass.stop(now + 0.32);
-
-  const noiseBuffer = ctx.createBuffer(1, ctx.sampleRate * 0.2, ctx.sampleRate);
-  const channel = noiseBuffer.getChannelData(0);
-  for (let i = 0; i < channel.length; i += 1) {
-    channel[i] = (Math.random() * 2 - 1) * (1 - i / channel.length);
-  }
-  const noise = ctx.createBufferSource();
-  noise.buffer = noiseBuffer;
-  const noiseGain = ctx.createGain();
-  noiseGain.gain.setValueAtTime(0.05, now);
-  noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.2);
-  noise.connect(noiseGain);
-  noiseGain.connect(ctx.destination);
-  noise.start(now + 0.02);
 }
 
 function updateSoundButtonLabel() {
@@ -285,9 +243,8 @@ function setMoodContent(mood) {
   moodPlaylist.textContent = `Open ${mood.charAt(0).toUpperCase() + mood.slice(1)} Playlist`;
 }
 
-function applyMood(mood, options = {}) {
+function applyMood(mood) {
   if (!validMoods.includes(mood)) return;
-  const { playSound = false } = options;
 
   document.body.dataset.mood = mood;
   setActiveMoodButton(mood);
@@ -295,10 +252,6 @@ function applyMood(mood, options = {}) {
 
   if (moodStatus) {
     moodStatus.textContent = `${mood.charAt(0).toUpperCase() + mood.slice(1)} vibe active.`;
-  }
-
-  if (playSound) {
-    playMoodSound(mood);
   }
 }
 
@@ -430,7 +383,6 @@ function triggerCelebration() {
   const moodSection = document.getElementById("mood") || document.getElementById("vibeZone");
   if (!moodSection) return;
 
-  playCelebrateSound();
   document.body.classList.add("celebration");
   setTimeout(() => document.body.classList.remove("celebration"), 880);
 
@@ -602,19 +554,11 @@ async function loadRepos() {
   if (!repoGrid || !statusEl) return;
 
   try {
-    const response = await fetch(apiUrl, {
-      headers: {
-        Accept: "application/vnd.github+json"
-      }
-    });
-
-    if (!response.ok) {
-      throw new Error(`GitHub API returned ${response.status}`);
-    }
+    const response = await fetch(apiUrl, { headers: { Accept: "application/vnd.github+json" } });
+    if (!response.ok) throw new Error(`GitHub API returned ${response.status}`);
 
     const repos = await response.json();
     allRepos = repos.filter((repo) => !repo.fork);
-
     if (!allRepos.length) {
       statusEl.textContent = "No public repositories found.";
       return;
@@ -628,8 +572,39 @@ async function loadRepos() {
   }
 }
 
+function buildOracleDeck(activeMood, size = 160) {
+  const deck = [];
+  const moodLabel = activeMood.charAt(0).toUpperCase() + activeMood.slice(1);
+  const themes = oracleDeckThemes[activeMood] || oracleDeckThemes.chill;
+
+  for (let i = 1; i <= size; i += 1) {
+    const slot = ((i - 1) % 8) + 1;
+    const wave = Math.floor((i - 1) / 8) + 1;
+    const theme = themes[(i - 1) % themes.length];
+    deck.push(`Slide ${i} - ${moodLabel} ${theme} - Wave ${wave} - Move ${slot}`);
+  }
+
+  for (let i = deck.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [deck[i], deck[j]] = [deck[j], deck[i]];
+  }
+
+  return deck;
+}
+
+function drawOracleCard(activeMood) {
+  if (!oracleDeck.length || oracleIndex >= oracleDeck.length) {
+    oracleDeck = buildOracleDeck(activeMood, 160);
+    oracleIndex = 0;
+  }
+
+  const card = oracleDeck[oracleIndex];
+  oracleIndex += 1;
+  return `${card} (${oracleIndex}/${oracleDeck.length})`;
+}
+
 function startTapSprint(activeMood) {
-  if (!vibeTapBtn || !vibeTapStatus || !vibeTapScore || !vibeTapStartBtn) return;
+  if (!vibeTapBtn || !vibeTapStatus || !vibeTapScore || !vibeTapStartBtn || !vibeTapHighScore) return;
 
   if (tapTimer) {
     clearInterval(tapTimer);
@@ -641,6 +616,7 @@ function startTapSprint(activeMood) {
   vibeTapBtn.disabled = false;
   vibeTapStartBtn.disabled = true;
   vibeTapScore.textContent = "0 taps";
+  vibeTapHighScore.textContent = `High score: ${tapBest} taps`;
   vibeTapStatus.textContent = `Go! ${tapSecondsLeft}s left.`;
 
   tapTimer = setInterval(() => {
@@ -651,10 +627,20 @@ function startTapSprint(activeMood) {
       vibeTapBtn.disabled = true;
       vibeTapStartBtn.disabled = false;
 
-      const tier = tapCount >= 45 ? "Legend" : tapCount >= 30 ? "Strong" : tapCount >= 18 ? "Nice" : "Warm-up";
-      vibeTapStatus.textContent = `${tier} run (${tapCount} taps).`;
-      if (vibeActionStatus) vibeActionStatus.textContent = `Tap sprint finished for ${activeMood}.`;
-      playMoodSound(activeMood);
+      if (tapCount > tapBest) {
+        tapBest = tapCount;
+        localStorage.setItem(vibeTapHighScoreKey, JSON.stringify(tapBest));
+        vibeTapHighScore.textContent = `High score: ${tapBest} taps`;
+        vibeTapStatus.textContent = `New high score: ${tapBest}!`;
+        playCelebrateSound();
+        triggerCelebration();
+      } else {
+        vibeTapStatus.textContent = `Run complete: ${tapCount} taps.`;
+      }
+
+      if (vibeActionStatus) {
+        vibeActionStatus.textContent = `Tap sprint done for ${activeMood}.`;
+      }
       return;
     }
 
@@ -663,14 +649,12 @@ function startTapSprint(activeMood) {
 }
 
 function initVibePage() {
-  if (!vibeTitle || !vibeLead || !vibeMoodBadge || !vibePrompt || !vibeMicroChallenge || !vibeMissionList) {
-    return;
-  }
+  if (!vibeTitle || !vibeLead || !vibeMoodBadge || !vibePrompt || !vibeMicroChallenge || !vibeMissionList) return;
 
   let activeMood = getActiveMood();
 
   const renderVibeMood = () => {
-    applyMood(activeMood, { playSound: false });
+    applyMood(activeMood);
     vibeTitle.textContent = `${moodContent[activeMood].emoji} ${activeMood.charAt(0).toUpperCase() + activeMood.slice(1)} Mode`;
     vibeLead.textContent = moodContent[activeMood].quote;
     vibeMoodBadge.textContent = `Mood: ${moodContent[activeMood].emoji} ${activeMood}`;
@@ -683,6 +667,11 @@ function initVibePage() {
       li.textContent = mission;
       vibeMissionList.appendChild(li);
     });
+
+    oracleDeck = buildOracleDeck(activeMood, 160);
+    oracleIndex = 0;
+    if (vibeOracleText) vibeOracleText.textContent = "Draw a card from the 160-slide deck.";
+    if (vibeTapHighScore) vibeTapHighScore.textContent = `High score: ${tapBest} taps`;
   };
 
   renderVibeMood();
@@ -690,10 +679,8 @@ function initVibePage() {
   if (vibeChallengeBtn) {
     vibeChallengeBtn.addEventListener("click", () => {
       const picks = vibeChallenges[activeMood];
-      const next = picks[Math.floor(Math.random() * picks.length)];
-      vibeMicroChallenge.textContent = next;
+      vibeMicroChallenge.textContent = picks[Math.floor(Math.random() * picks.length)];
       if (vibeActionStatus) vibeActionStatus.textContent = "New challenge loaded.";
-      playMoodSound(activeMood);
     });
   }
 
@@ -705,29 +692,19 @@ function initVibePage() {
     });
   }
 
-  if (vibeSoundBtn) {
-    vibeSoundBtn.addEventListener("click", () => {
-      playMoodSound(activeMood);
-      if (vibeActionStatus) vibeActionStatus.textContent = "Mood sound played.";
-    });
-  }
-
   if (vibeShuffleMoodBtn) {
     vibeShuffleMoodBtn.addEventListener("click", () => {
       activeMood = validMoods[Math.floor(Math.random() * validMoods.length)];
       saveTodayMood(activeMood);
       renderVibeMood();
-      playMoodSound(activeMood);
       if (vibeActionStatus) vibeActionStatus.textContent = `Mood shuffled to ${activeMood}.`;
     });
   }
 
   if (vibeOracleBtn && vibeOracleText) {
     vibeOracleBtn.addEventListener("click", () => {
-      const cards = vibeOracle[activeMood];
-      vibeOracleText.textContent = cards[Math.floor(Math.random() * cards.length)];
-      if (vibeActionStatus) vibeActionStatus.textContent = "Oracle card drawn.";
-      playMoodSound(activeMood);
+      vibeOracleText.textContent = drawOracleCard(activeMood);
+      if (vibeActionStatus) vibeActionStatus.textContent = "Card drawn.";
     });
   }
 
@@ -735,9 +712,7 @@ function initVibePage() {
     vibeEnergy.addEventListener("input", () => {
       const value = Number(vibeEnergy.value);
       vibeEnergyStatus.textContent = `Energy: ${value}`;
-      if (value >= 8) {
-        spawnFloatingDots(value * 3, 1 + value / 10);
-      }
+      if (value >= 8) spawnFloatingDots(value * 3, 1 + value / 10);
     });
   }
 
@@ -745,9 +720,6 @@ function initVibePage() {
     vibeTapBtn.addEventListener("click", () => {
       tapCount += 1;
       vibeTapScore.textContent = `${tapCount} taps`;
-      if (tapCount % 10 === 0) {
-        playMoodSound(activeMood);
-      }
     });
   }
 
@@ -759,7 +731,7 @@ function initVibePage() {
 moodButtons.forEach((button) => {
   button.addEventListener("click", () => {
     const mood = button.dataset.mood;
-    applyMood(mood, { playSound: true });
+    applyMood(mood);
     saveTodayMood(mood);
   });
 });
@@ -767,7 +739,7 @@ moodButtons.forEach((button) => {
 if (randomMoodBtn) {
   randomMoodBtn.addEventListener("click", () => {
     const mood = validMoods[Math.floor(Math.random() * validMoods.length)];
-    applyMood(mood, { playSound: true });
+    applyMood(mood);
     saveTodayMood(mood);
     triggerCelebration();
   });
@@ -790,9 +762,7 @@ if (soundToggleBtn) {
     soundEnabled = !soundEnabled;
     localStorage.setItem(moodSoundKey, JSON.stringify(soundEnabled));
     updateSoundButtonLabel();
-    if (soundEnabled) {
-      playMoodSound("focused");
-    }
+
   });
 }
 
@@ -816,3 +786,4 @@ createParticles();
 setupRevealAnimations();
 initVibePage();
 loadRepos();
+
