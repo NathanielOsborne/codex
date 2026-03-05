@@ -65,7 +65,9 @@ const revealEls = [...document.querySelectorAll(".reveal")];
 let allRepos = [];
 let breatheTimer = null;
 
-githubProfileLink.href = `https://github.com/${githubUsername}`;
+if (githubProfileLink) {
+  githubProfileLink.href = `https://github.com/${githubUsername}`;
+}
 
 function todayString() {
   const now = new Date();
@@ -92,6 +94,8 @@ function setActiveMoodButton(selectedMood) {
 }
 
 function setMoodContent(mood) {
+  if (!moodEmoji || !moodQuote || !moodChallenge || !moodPlaylist) return;
+
   const content = moodContent[mood];
   if (!content) {
     moodEmoji.textContent = "🙂";
@@ -114,7 +118,9 @@ function applyMood(mood) {
   document.body.dataset.mood = mood;
   setActiveMoodButton(mood);
   setMoodContent(mood);
-  moodStatus.textContent = `${mood.charAt(0).toUpperCase() + mood.slice(1)} vibe is active for today.`;
+  if (moodStatus) {
+    moodStatus.textContent = `${mood.charAt(0).toUpperCase() + mood.slice(1)} vibe is active for today.`;
+  }
 }
 
 function saveTodayMood(mood) {
@@ -149,6 +155,8 @@ function computeStreak(historyObj) {
 }
 
 function updateMoodStats() {
+  if (!checkinValue || !streakValue || !favoriteMood) return;
+
   const history = parseJsonFromStorage(moodHistoryKey, {});
   const dates = Object.keys(history).sort();
   checkinValue.textContent = String(dates.length);
@@ -171,6 +179,8 @@ function updateMoodStats() {
 }
 
 function renderMoodHistory() {
+  if (!moodHistory) return;
+
   const history = parseJsonFromStorage(moodHistoryKey, {});
   const dates = Object.keys(history).sort().reverse().slice(0, 7);
   moodHistory.innerHTML = "";
@@ -200,8 +210,9 @@ function restoreMoodForToday() {
 }
 
 function createParticles() {
-  particleLayer.innerHTML = "";
+  if (!particleLayer) return;
 
+  particleLayer.innerHTML = "";
   for (let i = 0; i < 34; i += 1) {
     const particle = document.createElement("span");
     particle.className = "particle";
@@ -221,7 +232,10 @@ function createParticles() {
 }
 
 function triggerCelebration() {
-  const moodRect = document.getElementById("mood").getBoundingClientRect();
+  const moodSection = document.getElementById("mood");
+  if (!moodSection) return;
+
+  const moodRect = moodSection.getBoundingClientRect();
   const centerX = moodRect.left + moodRect.width / 2;
   const centerY = moodRect.top + 90;
 
@@ -242,7 +256,8 @@ function triggerCelebration() {
 }
 
 function startBreathingTimer() {
-  if (breatheTimer) return;
+  if (!breatheStatus || breatheTimer) return;
+
   let secondsLeft = 30;
   breatheStatus.textContent = `Breathe in... ${secondsLeft}s`;
 
@@ -261,6 +276,8 @@ function startBreathingTimer() {
 }
 
 function setupJournal() {
+  if (!journalNote || !journalStatus) return;
+
   const notes = parseJsonFromStorage(moodNoteKey, {});
   const today = todayString();
   journalNote.value = notes[today] || "";
@@ -274,6 +291,8 @@ function setupJournal() {
 }
 
 function setupRevealAnimations() {
+  if (!revealEls.length) return;
+
   const observer = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
@@ -318,6 +337,8 @@ function createRepoCard(repo) {
 }
 
 function renderRepos(repos) {
+  if (!repoGrid || !statusEl) return;
+
   repoGrid.innerHTML = "";
   repos.forEach((repo) => repoGrid.appendChild(createRepoCard(repo)));
   statusEl.textContent = repos.length
@@ -326,6 +347,8 @@ function renderRepos(repos) {
 }
 
 function populateLanguageFilter(repos) {
+  if (!languageFilter) return;
+
   const languages = [...new Set(repos.map((repo) => repo.language).filter(Boolean))].sort();
   languages.forEach((language) => {
     const option = document.createElement("option");
@@ -336,6 +359,8 @@ function populateLanguageFilter(repos) {
 }
 
 function applyFilters() {
+  if (!repoSearch || !languageFilter) return;
+
   const searchText = repoSearch.value.trim().toLowerCase();
   const selectedLanguage = languageFilter.value;
 
@@ -352,6 +377,8 @@ function applyFilters() {
 }
 
 async function loadRepos() {
+  if (!repoGrid || !statusEl) return;
+
   try {
     const response = await fetch(apiUrl, {
       headers: {
@@ -387,20 +414,35 @@ moodButtons.forEach((button) => {
   });
 });
 
-randomMoodBtn.addEventListener("click", () => {
-  const mood = validMoods[Math.floor(Math.random() * validMoods.length)];
-  applyMood(mood);
-  saveTodayMood(mood);
-  triggerCelebration();
-});
+if (randomMoodBtn) {
+  randomMoodBtn.addEventListener("click", () => {
+    const mood = validMoods[Math.floor(Math.random() * validMoods.length)];
+    applyMood(mood);
+    saveTodayMood(mood);
+    triggerCelebration();
+  });
+}
 
-celebrateBtn.addEventListener("click", triggerCelebration);
-breatheBtn.addEventListener("click", startBreathingTimer);
+if (celebrateBtn) {
+  celebrateBtn.addEventListener("click", triggerCelebration);
+}
 
-repoSearch.addEventListener("input", applyFilters);
-languageFilter.addEventListener("change", applyFilters);
+if (breatheBtn) {
+  breatheBtn.addEventListener("click", startBreathingTimer);
+}
 
-if (yearEl) yearEl.textContent = new Date().getFullYear();
+if (repoSearch) {
+  repoSearch.addEventListener("input", applyFilters);
+}
+
+if (languageFilter) {
+  languageFilter.addEventListener("change", applyFilters);
+}
+
+if (yearEl) {
+  yearEl.textContent = new Date().getFullYear();
+}
+
 restoreMoodForToday();
 updateMoodStats();
 renderMoodHistory();
@@ -408,4 +450,3 @@ setupJournal();
 createParticles();
 setupRevealAnimations();
 loadRepos();
-

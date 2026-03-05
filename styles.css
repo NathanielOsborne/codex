@@ -192,6 +192,18 @@ footer {
   font-size: 0.92rem;
 }
 
+.topnav-tabs .tab-link {
+  padding: 0.4rem 0.72rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+}
+
+.topnav-tabs .tab-link.active {
+  border-color: var(--border);
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.72);
+}
+
 .hero,
 .mood,
 .repos,

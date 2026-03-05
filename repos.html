@@ -1,0 +1,60 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nathaniel Osborne | Projects</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="bg-grid" aria-hidden="true"></div>
+  <div class="bg-glow" aria-hidden="true"></div>
+  <div id="particleLayer" class="particle-layer" aria-hidden="true"></div>
+
+  <header class="topbar reveal">
+    <a class="brand" href="./index.html">Nathaniel Osborne</a>
+    <nav class="topnav topnav-tabs">
+      <a class="tab-link" href="./index.html">Home</a>
+      <a class="tab-link active" href="./repos.html">Projects</a>
+      <a class="tab-link" href="./index.html#contact">Contact</a>
+    </nav>
+    <a class="btn primary" href="https://github.com/NathanielOsborne" target="_blank" rel="noreferrer">Connect</a>
+  </header>
+
+  <main>
+    <section class="hero reveal">
+      <p class="eyebrow">Projects Tab</p>
+      <h1>Live code portfolio, separated into its own focused space.</h1>
+      <p class="lead">Browse repositories by keyword and language. This tab keeps project content separate from your mood-based home experience.</p>
+      <div class="cta-row">
+        <a class="btn primary" href="./index.html">Back to Home</a>
+        <a class="btn ghost" href="https://github.com/NathanielOsborne?tab=repositories" target="_blank" rel="noreferrer">Open GitHub</a>
+      </div>
+    </section>
+
+    <section id="repos" class="repos reveal">
+      <div class="section-head">
+        <h2>Featured Repositories</h2>
+        <p>Live from GitHub</p>
+      </div>
+      <div class="filters" role="group" aria-label="Repository filters">
+        <input id="repoSearch" type="search" placeholder="Search repos..." aria-label="Search repositories" />
+        <select id="languageFilter" aria-label="Filter by language">
+          <option value="all">All languages</option>
+        </select>
+      </div>
+      <div id="repoGrid" class="repo-grid" aria-live="polite"></div>
+      <p id="status" class="status">Loading repositories...</p>
+    </section>
+  </main>
+
+  <footer>
+    <small><span id="year"></span> Nathaniel Osborne. Built with intention.</small>
+  </footer>
+
+  <script src="./script.js"></script>
+</body>
+</html>

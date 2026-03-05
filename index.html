@@ -15,11 +15,11 @@
   <div id="particleLayer" class="particle-layer" aria-hidden="true"></div>
 
   <header class="topbar reveal">
-    <a class="brand" href="#">Nathaniel Osborne</a>
-    <nav class="topnav">
-      <a href="#mood">Mood Lab</a>
-      <a href="#repos">Projects</a>
-      <a href="#contact">Contact</a>
+    <a class="brand" href="./index.html">Nathaniel Osborne</a>
+    <nav class="topnav topnav-tabs">
+      <a class="tab-link active" href="./index.html">Home</a>
+      <a class="tab-link" href="./repos.html">Projects</a>
+      <a class="tab-link" href="#contact">Contact</a>
     </nav>
     <a class="btn primary" href="https://github.com/NathanielOsborne" target="_blank" rel="noreferrer">Connect</a>
   </header>
@@ -104,28 +104,13 @@
       </div>
     </section>
 
-    <section id="repos" class="repos reveal">
-      <div class="section-head">
-        <h2>Featured Repositories</h2>
-        <p>Live from GitHub</p>
-      </div>
-      <div class="filters" role="group" aria-label="Repository filters">
-        <input id="repoSearch" type="search" placeholder="Search repos..." aria-label="Search repositories" />
-        <select id="languageFilter" aria-label="Filter by language">
-          <option value="all">All languages</option>
-        </select>
-      </div>
-      <div id="repoGrid" class="repo-grid" aria-live="polite"></div>
-      <p id="status" class="status">Loading repositories...</p>
-    </section>
-
     <section class="contact reveal" id="contact">
       <div class="section-head">
         <h2>Want this kind of interactive experience for your site?</h2>
       </div>
       <p>Let’s design something memorable and high-converting together.</p>
       <div class="cta-row">
-        <a class="btn primary" href="https://github.com/NathanielOsborne?tab=repositories" target="_blank" rel="noreferrer">Explore My Work</a>
+        <a class="btn primary" href="./repos.html">See Projects Tab</a>
         <a class="btn ghost" href="https://github.com/NathanielOsborne" target="_blank" rel="noreferrer">Message on GitHub</a>
       </div>
     </section>
